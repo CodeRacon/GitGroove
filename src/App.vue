@@ -3,29 +3,34 @@
 <template>
   <div class="app">
     <header>
-      <h1>GitGroove</h1>
+      <nav>
+        <RouterLink to="/">Grid</RouterLink> |
+        <RouterLink to="/settings">Settings</RouterLink>
+      </nav>
     </header>
+
+    <RouterView />
   </div>
 </template>
 
-<style scoped>
+<style>
 .app {
   min-height: 100vh;
+  width: 100%;
 }
 
-header {
-  padding: 2rem;
+nav {
+  padding: 1rem;
   text-align: center;
 }
 
-h1 {
-  font-size: 2.5rem;
-  color: var(--color-heading);
+nav a {
+  margin: 0 0.5rem;
+  text-decoration: none;
+  color: #2c3e50;
 }
 
-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
+nav a.router-link-active {
+  color: #42b883;
 }
 </style>
