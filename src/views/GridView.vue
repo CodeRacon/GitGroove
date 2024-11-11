@@ -1,36 +1,165 @@
 <script setup lang="ts">
-// Hier kommen später GitHub Service und Audio Controller
+import { ref, onMounted, nextTick } from 'vue'
+import { useGitHubStore } from '../stores/github.store'
+import BarSelector from '../components/sequencer/BarSelector.vue'
+import BracketSelector from '../components/sequencer/BracketSelector.vue'
+
+const githubStore = useGitHubStore()
+const username = ref('')
+const selectedBars = ref(4)
+const gridWidth = ref(0)
+const gridRef = ref<HTMLElement | null>(null)
+
+const updateGridWidth = () => {
+  if (gridRef.value) {
+    gridWidth.value = gridRef.value.offsetWidth
+  }
+}
+
+onMounted(() => {
+  updateGridWidth()
+})
+
+const loadContributions = async () => {
+  if (username.value) {
+    await githubStore.fetchContributions(username.value)
+    nextTick(() => {
+      updateGridWidth()
+    })
+  }
+}
+
+const updateBars = (bars: number) => {
+  selectedBars.value = bars
+}
+
+const updateRange = ({ start, bars }: { start: number; bars: number }) => {
+  console.log(`Starting at week ${start}, showing ${bars} bars`)
+}
 </script>
 
 <template>
-  <div class="grid-view">
-    <section class="contribution-grid">
-      <!-- Hier kommt unser Sequencer Grid -->
-    </section>
+  <main class="grid-view">
+    <div class="input-section">
+      <input
+        v-model="username"
+        type="text"
+        placeholder="GitHub Username eingeben"
+        @keyup.enter="loadContributions"
+      />
+      <button @click="loadContributions">🎵 Load</button>
+    </div>
 
-    <section class="controls">
-      <!-- Hier kommen Play/Pause und Audio Controls -->
-    </section>
-  </div>
+    <div v-if="githubStore.contributions" class="sequencer-controls">
+      <BarSelector :bars="selectedBars" @update:bars="updateBars" />
+      <BracketSelector
+        v-if="gridWidth"
+        :total-weeks="52"
+        :selected-bars="selectedBars"
+        :grid-width="gridWidth"
+        @update:range="updateRange"
+      />
+    </div>
+
+    <div v-if="githubStore.loading" class="status">Loading... 🎼</div>
+    <div v-else-if="githubStore.error" class="status error">{{ githubStore.error }} 😕</div>
+    <div v-if="githubStore.contributions" ref="gridRef" class="contribution-grid">
+      <div
+        v-for="(week, weekIndex) in githubStore.contributions.weeks"
+        :key="weekIndex"
+        class="week"
+      >
+        <div
+          v-for="(day, dayIndex) in week.days"
+          :key="dayIndex"
+          class="day"
+          :class="`level-${day.level}`"
+        ></div>
+      </div>
+    </div>
+  </main>
 </template>
 
 <style scoped>
 .grid-view {
+  padding: 2rem;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 2rem;
+  width: fit-content;
+}
+
+.input-section {
+  display: flex;
+  gap: 1rem;
+}
+
+input {
+  padding: 0.5rem;
+  border: 2px solid #42b883;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background: #42b883;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.status {
+  font-size: 1.2rem;
+}
+
+.error {
+  color: #ff4444;
+}
+
+.sequencer-controls {
+  width: 100%;
+  font-weight: bold;
 }
 
 .contribution-grid {
-  min-height: 400px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.controls {
+  width: 100%;
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 4px;
+  padding: 0 1rem;
+}
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.day {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background-color: #1a1b1a;
+  border: 1px solid #212221;
+}
+
+.level-4 {
+  background-color: #35cf43;
+  border: 1px solid #40db4e;
+}
+.level-3 {
+  background-color: #249a32;
+  border: 1px solid #2ea73d;
+}
+.level-2 {
+  background-color: #0d5d27;
+  border: 1px solid #146731;
+}
+.level-1 {
+  background-color: #0f361f;
+  border: 1px solid #184229;
 }
 </style>
