@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
   bars: {
     type: Number,
     default: 4,
@@ -21,7 +21,7 @@ const updateBars = (bars: number) => {
       <button
         v-for="bars in barOptions"
         :key="bars"
-        :class="{ active: selectedBars === bars }"
+        :class="{ active: props.bars === bars }"
         @click="updateBars(bars)"
       >
         <b>{{ bars }}</b>
@@ -61,6 +61,10 @@ button:hover {
 }
 
 button:active {
+  background: #42b883;
+}
+
+button.active {
   background: #42b883;
 }
 </style>
