@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { useGitHubStore } from '../stores/github.store'
+import { useSequencer } from '../composables/useSequencer'
 import BarSelector from '../components/sequencer/BarSelector.vue'
 import BracketSelector from '../components/sequencer/BracketSelector.vue'
+import PlayPauseButton from '../components/controls/PlayPauseButton.vue'
+import Playhead from '../components/sequencer/Playhead.vue'
+import BPMControl from '../components/controls/BPMControl.vue'
 
 const githubStore = useGitHubStore()
 const username = ref('')
 const selectedBars = ref(4)
+const startBar = ref(0)
 const gridWidth = ref(0)
 const gridRef = ref<HTMLElement | null>(null)
+
+const sequencer = useSequencer(selectedBars)
 
 const updateGridWidth = () => {
   if (gridRef.value) {
@@ -31,10 +38,26 @@ const loadContributions = async () => {
 
 const updateBars = (bars: number) => {
   selectedBars.value = bars
+  sequencer.setStartPosition(startBar.value)
+  sequencer.stop()
 }
 
-const updateRange = ({ start, bars }: { start: number; bars: number }) => {
-  console.log(`Starting at week ${start}, showing ${bars} bars`)
+const handleRangeUpdate = ({ start, bars }: { start: number; bars: number }) => {
+  startBar.value = start
+  sequencer.stop()
+  sequencer.setStartPosition(start)
+}
+
+const handlePlayback = (isPlaying: boolean) => {
+  if (isPlaying) {
+    sequencer.play()
+  } else {
+    sequencer.pause()
+  }
+}
+
+const handleBPMChange = (newBPM: number) => {
+  sequencer.setBPM(newBPM)
 }
 </script>
 
@@ -57,13 +80,22 @@ const updateRange = ({ start, bars }: { start: number; bars: number }) => {
         :total-weeks="52"
         :selected-bars="selectedBars"
         :grid-width="gridWidth"
-        @update:range="updateRange"
+        @update:range="handleRangeUpdate"
       />
     </div>
 
     <div v-if="githubStore.loading" class="status">Loading... 🎼</div>
     <div v-else-if="githubStore.error" class="status error">{{ githubStore.error }} 😕</div>
     <div v-if="githubStore.contributions" ref="gridRef" class="contribution-grid">
+      <Playhead
+        v-if="sequencer.isPlaying"
+        :position="sequencer.currentBar.value"
+        :progress="sequencer.progress.value"
+        :start-position="startBar.value"
+        :total-bars="selectedBars"
+        :is-looping="sequencer.isLooping.value"
+      />
+
       <div
         v-for="(week, weekIndex) in githubStore.contributions.weeks"
         :key="weekIndex"
@@ -76,6 +108,16 @@ const updateRange = ({ start, bars }: { start: number; bars: number }) => {
           :class="`level-${day.level}`"
         ></div>
       </div>
+    </div>
+
+    <div v-if="githubStore.contributions" class="playback-controls">
+      <PlayPauseButton
+        @play="handlePlayback(true)"
+        @pause="handlePlayback(false)"
+        @stop="sequencer.stop()"
+      />
+
+      <BPMControl :bpm="sequencer.bpm.value" @update:bpm="handleBPMChange" />
     </div>
   </main>
 </template>
@@ -120,16 +162,17 @@ button {
 }
 
 .sequencer-controls {
-  width: 100%;
+  width: calc(100% + 2rem);
+
   font-weight: bold;
 }
 
 .contribution-grid {
+  position: relative;
   width: 100%;
   display: flex;
   justify-content: center;
   gap: 4px;
-  padding: 0 1rem;
 }
 
 .week {
@@ -161,5 +204,13 @@ button {
 .level-1 {
   background-color: #0f361f;
   border: 1px solid #184229;
+}
+
+.playback-controls {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  justify-content: center;
 }
 </style>
