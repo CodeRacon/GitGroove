@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
   totalWeeks: { type: Number, required: true },
@@ -20,7 +20,11 @@ const bracketWidth = computed(
   () => props.selectedBars * BAR_WIDTH + (props.selectedBars - 1) * BAR_GAP,
 )
 
-const emit = defineEmits(['update:range'])
+const emit = defineEmits(['update:range', 'positionChange'])
+
+watch(startBar, (newValue) => {
+  emit('positionChange', newValue)
+})
 
 const startDrag = (e: MouseEvent) => {
   isDragging.value = true
