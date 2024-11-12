@@ -10,6 +10,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  startPosition: {
+    type: Number,
+    required: true,
+  },
   totalBars: {
     type: Number,
     required: true,
@@ -22,16 +26,26 @@ const props = defineProps({
     type: Number,
     default: 4,
   },
+  isLooping: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const playheadPosition = computed(() => ({
-  left: `${(props.position + props.progress) * (props.barWidth + props.barGap)}px`,
-}))
+const playheadPosition = computed(() => {
+  const weekWidth = props.barWidth + props.barGap
+  const basePosition = props.position * weekWidth
+  const progressOffset = props.progress * weekWidth
+
+  return {
+    left: `${basePosition + progressOffset}px`,
+  }
+})
 </script>
 
 <template>
   <div class="playhead-container">
-    <div class="playhead" :style="playheadPosition">
+    <div class="playhead" :class="{ 'no-transition': isLooping }" :style="playheadPosition">
       <div class="playhead-line"></div>
       <div class="playhead-marker"></div>
     </div>
@@ -52,6 +66,10 @@ const playheadPosition = computed(() => ({
   position: absolute;
   height: calc(100% + 8px);
   transition: left 0.1s linear;
+}
+
+.no-transition {
+  transition: none;
 }
 
 .playhead-line {
