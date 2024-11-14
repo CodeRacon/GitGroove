@@ -4,9 +4,14 @@ import { ref } from 'vue'
 const isPlaying = ref(false)
 const emit = defineEmits(['play', 'pause', 'stop'])
 
-const togglePlay = () => {
-  isPlaying.value = !isPlaying.value
-  emit(isPlaying.value ? 'play' : 'pause')
+const togglePlay = async () => {
+  try {
+    isPlaying.value = !isPlaying.value
+    emit(isPlaying.value ? 'play' : 'pause')
+  } catch (error) {
+    console.error('Playback toggle error:', error)
+    isPlaying.value = false
+  }
 }
 
 const playIcon = /*html*/ `
