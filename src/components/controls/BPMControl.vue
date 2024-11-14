@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useOrchestrator } from '../../composables/audio/useOrchestrator'
 
 const props = defineProps({
   bpm: {
