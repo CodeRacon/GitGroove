@@ -12,7 +12,7 @@ const props = defineProps({
   },
   startPosition: {
     type: Number,
-    required: true,
+    default: 0,
   },
   totalBars: {
     type: Number,
