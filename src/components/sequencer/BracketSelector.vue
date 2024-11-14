@@ -22,9 +22,14 @@ const bracketWidth = computed(
 
 const emit = defineEmits(['update:range', 'positionChange'])
 
-watch(startBar, (newValue) => {
-  emit('positionChange', newValue)
-})
+watch(
+  () => props.selectedBars,
+  () => {
+    const maxStart = props.totalWeeks - props.selectedBars
+    startBar.value = Math.min(startBar.value, maxStart)
+    emit('update:range', { start: startBar.value, bars: props.selectedBars })
+  },
+)
 
 const startDrag = (e: MouseEvent) => {
   isDragging.value = true
