@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue' // watch hinzugefügt
 import { useGitHubStore } from '../stores/github.store'
 import { useSequencer } from '../composables/useSequencer'
+import { useOrchestrator } from '../composables/audio/useOrchestrator'
 import BarSelector from '../components/sequencer/BarSelector.vue'
 import BracketSelector from '../components/sequencer/BracketSelector.vue'
 import PlayPauseButton from '../components/controls/PlayPauseButton.vue'
 import Playhead from '../components/sequencer/Playhead.vue'
 import BPMControl from '../components/controls/BPMControl.vue'
+import * as Tone from 'tone'
 
 const githubStore = useGitHubStore()
 const username = ref('')
@@ -16,6 +18,7 @@ const gridWidth = ref(0)
 const gridRef = ref<HTMLElement | null>(null)
 
 const sequencer = useSequencer(selectedBars)
+const orchestrator = useOrchestrator()
 
 const updateGridWidth = () => {
   if (gridRef.value) {
@@ -38,6 +41,8 @@ const loadContributions = async () => {
 
 const updateBars = (bars: number) => {
   selectedBars.value = bars
+  const maxStart = Math.max(0, 52 - bars)
+  startBar.value = Math.min(startBar.value, maxStart)
   sequencer.setStartPosition(startBar.value)
   sequencer.stop()
 }
@@ -48,9 +53,17 @@ const handleRangeUpdate = ({ start, bars }: { start: number; bars: number }) => 
   sequencer.setStartPosition(start)
 }
 
-const handlePlayback = (isPlaying: boolean) => {
+const handlePlayback = async (isPlaying: boolean) => {
   if (isPlaying) {
+    // Erst Tone.js starten
+    await Tone.start()
+
     sequencer.play()
+    if (githubStore.contributions) {
+      const currentWeek = githubStore.contributions.weeks[startBar.value]
+      const avgLevel = currentWeek.days.reduce((sum, day) => sum + day.level, 0) / 7
+      orchestrator.updateHarmony(avgLevel, new Date().getDay())
+    }
   } else {
     sequencer.pause()
   }
@@ -59,6 +72,28 @@ const handlePlayback = (isPlaying: boolean) => {
 const handleBPMChange = (newBPM: number) => {
   sequencer.setBPM(newBPM)
 }
+
+watch(sequencer.currentBar, (weekIndex) => {
+  if (!githubStore.contributions || !sequencer.isPlaying.value) return
+
+  const week = githubStore.contributions.weeks[weekIndex]
+  const dayIndex = Math.floor(sequencer.progress.value * 7)
+  const day = week.days[dayIndex]
+
+  // Hole die harmonische Basis mit allen Noten
+  const harmony = orchestrator.updateHarmony(day.level, dayIndex)
+
+  // Bass-Pattern mit Grundton
+  orchestrator.playPattern('bass', day.level, [harmony.bass])
+
+  // Akkord-Pattern
+  orchestrator.playPattern('chords', day.level, harmony.chord)
+
+  // Arpeggio-Pattern für höhere Aktivitätslevel
+  if (day.level > 2) {
+    orchestrator.playPattern('arpeggio', day.level, harmony.extensions)
+  }
+})
 </script>
 
 <template>
@@ -100,12 +135,21 @@ const handleBPMChange = (newBPM: number) => {
         v-for="(week, weekIndex) in githubStore.contributions.weeks"
         :key="weekIndex"
         class="week"
+        :class="{
+          inactive: weekIndex < startBar || weekIndex >= startBar + selectedBars,
+        }"
       >
         <div
           v-for="(day, dayIndex) in week.days"
           :key="dayIndex"
           class="day"
-          :class="`level-${day.level}`"
+          :class="[
+            `level-${day.level}`,
+            {
+              triggered:
+                sequencer.isTriggered && weekIndex === sequencer.currentBar.value && day.level >= 1,
+            },
+          ]"
         ></div>
       </div>
     </div>
@@ -181,12 +225,24 @@ button {
   gap: 4px;
 }
 
+.week.inactive {
+  filter: saturate(0.5) blur(1px);
+  opacity: 0.35;
+  transition: all 0.3s ease-out;
+}
+
 .day {
   width: 12px;
   height: 12px;
   border-radius: 2px;
   background-color: #1a1b1a;
   border: 1px solid #212221;
+}
+
+.day.triggered {
+  filter: brightness(2.5);
+  box-shadow: 0 0 8px rgba(128, 251, 196, 0.4);
+  transition: all 0.125s ease-in-out;
 }
 
 .level-4 {
@@ -204,6 +260,13 @@ button {
 .level-1 {
   background-color: #0f361f;
   border: 1px solid #184229;
+}
+
+.level-1,
+.level-2,
+.level-3,
+.level-4 {
+  transition: all 0.1s ease-out;
 }
 
 .playback-controls {
