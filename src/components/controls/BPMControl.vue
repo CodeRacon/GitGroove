@@ -2,6 +2,11 @@
 import { ref } from 'vue'
 import { useOrchestrator } from '../../composables/audio/useOrchestrator'
 
+/**
+ * Defines the props for the `BPMControl` component.
+ *
+ * @prop {number} bpm - The current BPM (beats per minute) value. Defaults to 120.
+ */
 const props = defineProps({
   bpm: {
     type: Number,
@@ -9,8 +14,19 @@ const props = defineProps({
   },
 })
 
+/**
+ * Emits an event to update the BPM (beats per minute) value.
+ *
+ * @event update:bpm - Emits the new BPM value.
+ */
 const emit = defineEmits(['update:bpm'])
 
+/**
+ * Updates the BPM (beats per minute) value and emits an event to notify listeners.
+ *
+ * @param {Event} event - The input event from the BPM range slider.
+ * @emits {update:bpm} - Emits the new BPM value.
+ */
 const updateBPM = (event: Event) => {
   const value = parseInt((event.target as HTMLInputElement).value)
   emit('update:bpm', value)

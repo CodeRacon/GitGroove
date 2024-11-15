@@ -10,26 +10,54 @@ import Playhead from '../components/sequencer/Playhead.vue'
 import BPMControl from '../components/controls/BPMControl.vue'
 import * as Tone from 'tone'
 
+/**
+ * Provides access to the GitHub store, which is used to fetch user contributions data.
+ */
 const githubStore = useGitHubStore()
 const username = ref('')
+
+/**
+ * Reactive references for managing the grid view:
+ * - `selectedBars`: the number of bars currently selected
+ * - `startBar`: the index of the first bar currently displayed
+ * - `gridWidth`: the current width of the grid element
+ * - `gridRef`: a ref to the grid element itself
+ */
 const selectedBars = ref(4)
 const startBar = ref(0)
 const gridWidth = ref(0)
 const gridRef = ref<HTMLElement | null>(null)
 
+/**
+ * Initializes the sequencer and orchestrator instances used in the GridView component.
+ * - `sequencer`: a reactive instance of the useSequencer composable, which manages the sequencing and playback of the grid view.
+ * - `orchestrator`: a reactive instance of the useOrchestrator composable, which manages the audio synthesis and harmony generation for the grid view.
+ */
 const sequencer = useSequencer(selectedBars)
 const orchestrator = useOrchestrator()
 
+/**
+ * Updates the width of the grid element to match the current width of the container.
+ * This is necessary to ensure the grid is sized correctly within its parent container.
+ */
 const updateGridWidth = () => {
   if (gridRef.value) {
     gridWidth.value = gridRef.value.offsetWidth
   }
 }
 
+/**
+ * Updates the width of the grid element to match the current width of the container.
+ * This is necessary to ensure the grid is sized correctly within its parent container.
+ */
 onMounted(() => {
   updateGridWidth()
 })
 
+/**
+ * Fetches the user's GitHub contributions data and updates the grid width after the data is loaded.
+ * This function is typically called when the username is changed or when the component is first mounted.
+ */
 const loadContributions = async () => {
   if (username.value) {
     await githubStore.fetchContributions(username.value)
@@ -39,6 +67,11 @@ const loadContributions = async () => {
   }
 }
 
+/**
+ * Updates the number of bars displayed in the grid view and adjusts the starting bar index accordingly.
+ *
+ * @param bars - The new number of bars to display in the grid.
+ */
 const updateBars = (bars: number) => {
   selectedBars.value = bars
   const maxStart = Math.max(0, 52 - bars)
@@ -47,15 +80,26 @@ const updateBars = (bars: number) => {
   sequencer.stop()
 }
 
+/**
+ * Updates the starting bar index and the number of bars displayed in the grid view, and stops the sequencer.
+ *
+ * @param start - The new starting bar index.
+ * @param bars - The new number of bars to display in the grid.
+ */
 const handleRangeUpdate = ({ start, bars }: { start: number; bars: number }) => {
   startBar.value = start
   sequencer.stop()
   sequencer.setStartPosition(start)
 }
 
+/**
+ * Handles the playback of the sequencer and updates the harmony based on the current week's contribution data.
+ *
+ * @param isPlaying - A boolean indicating whether the sequencer should start or stop playing.
+ * @returns A Promise that resolves when the sequencer has started or stopped.
+ */
 const handlePlayback = async (isPlaying: boolean) => {
   if (isPlaying) {
-    // Erst Tone.js starten
     await Tone.start()
 
     sequencer.play()
@@ -69,27 +113,30 @@ const handlePlayback = async (isPlaying: boolean) => {
   }
 }
 
+/**
+ * Updates the tempo (beats per minute) of the sequencer.
+ *
+ * @param newBPM - The new tempo in beats per minute.
+ */
 const handleBPMChange = (newBPM: number) => {
   sequencer.setBPM(newBPM)
 }
 
+/**
+ * Watches the current bar index of the sequencer and updates the harmony and playback patterns based on the contribution data for the current week and day.
+ *
+ * This function is called whenever the `sequencer.currentBar` value changes, which happens during playback. It retrieves the current week and day from the `githubStore.contributions` data, and then updates the harmony and plays the corresponding bass, chords, and arpeggio patterns using the `orchestrator` module.
+ *
+ * If the sequencer is not playing or the contribution data is not available, the function will return without making any updates.
+ */
 watch(sequencer.currentBar, (weekIndex) => {
   if (!githubStore.contributions || !sequencer.isPlaying.value) return
-
   const week = githubStore.contributions.weeks[weekIndex]
   const dayIndex = Math.floor(sequencer.progress.value * 7)
   const day = week.days[dayIndex]
-
-  // Hole die harmonische Basis mit allen Noten
   const harmony = orchestrator.updateHarmony(day.level, dayIndex)
-
-  // Bass-Pattern mit Grundton
   orchestrator.playPattern('bass', day.level, [harmony.bass])
-
-  // Akkord-Pattern
   orchestrator.playPattern('chords', day.level, harmony.chord)
-
-  // Arpeggio-Pattern für höhere Aktivitätslevel
   if (day.level > 2) {
     orchestrator.playPattern('arpeggio', day.level, harmony.extensions)
   }
@@ -102,10 +149,10 @@ watch(sequencer.currentBar, (weekIndex) => {
       <input
         v-model="username"
         type="text"
-        placeholder="GitHub Username eingeben"
+        placeholder="GitHub Username"
         @keyup.enter="loadContributions"
       />
-      <button @click="loadContributions">🎵 Load</button>
+      <button @click="loadContributions">Load Data</button>
     </div>
 
     <div v-if="githubStore.contributions" class="sequencer-controls">
@@ -119,7 +166,7 @@ watch(sequencer.currentBar, (weekIndex) => {
       />
     </div>
 
-    <div v-if="githubStore.loading" class="status">Loading... 🎼</div>
+    <div v-if="githubStore.loading" class="status">Collecting Data...</div>
     <div v-else-if="githubStore.error" class="status error">{{ githubStore.error }} 😕</div>
     <div v-if="githubStore.contributions" ref="gridRef" class="contribution-grid">
       <Playhead
@@ -194,7 +241,14 @@ button {
   border: none;
   border-radius: 4px;
   color: white;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  background: #3aa876;
 }
 
 .status {

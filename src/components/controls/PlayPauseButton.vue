@@ -1,9 +1,24 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+/**
+ * A reactive ref that tracks whether the audio is currently playing.
+ */
 const isPlaying = ref(false)
+
+/**
+ * Emits events for play, pause, and stop actions.
+ */
 const emit = defineEmits(['play', 'pause', 'stop'])
 
+/**
+ * Toggles the playback state of the audio.
+ *
+ * If the audio is currently playing, this function will pause the playback and emit a 'pause' event.
+ * If the audio is currently paused, this function will resume the playback and emit a 'play' event.
+ *
+ * If an error occurs during the playback toggle, the function will set `isPlaying` to `false` and log the error.
+ */
 const togglePlay = async () => {
   try {
     isPlaying.value = !isPlaying.value
@@ -25,6 +40,11 @@ const stopIcon = /*html*/ `
   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M6 16V8q0-.825.588-1.412T8 6h8q.825 0 1.413.588T18 8v8q0 .825-.587 1.413T16 18H8q-.825 0-1.412-.587T6 16"/></svg>
 `
 
+/**
+ * Handles the stop action for the audio playback.
+ *
+ * This function sets the `isPlaying` ref to `false` and emits a 'stop' event to notify any listeners that the audio has been stopped.
+ */
 const handleStop = () => {
   isPlaying.value = false
   emit('stop')

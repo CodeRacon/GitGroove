@@ -4,32 +4,46 @@ interface Pattern {
 }
 
 export class PatternGenerator {
+  /**
+   * Defines rhythm patterns for bass and chords at different levels of complexity.
+   * The patterns are represented as arrays of numbers, where each number represents
+   * the duration of a note relative to the beat.
+   *
+   * The `bass` and `chords` properties each contain patterns for their respective
+   * instrument types, with different levels of complexity represented by the `level#`
+   * properties.
+   */
   private rhythmPatterns = {
     bass: {
-      level0: [0], // Stille
-      level1: [1, 0, 0, 0], // Grundschlag
-      level2: [1, 0, 0.7, 0], // Betonung auf 1 und 3
-      level3: [1, 0.6, 0.8, 0.6], // Walking Bass
-      level4: [1, 0.7, 0.9, 0.8, 0.6, 0.8, 0.7, 0.9], // Komplexer Groove
+      level0: [0],
+      level1: [1, 0, 0, 0],
+      level2: [1, 0, 0.7, 0],
+      level3: [1, 0.6, 0.8, 0.6],
+      level4: [1, 0.7, 0.9, 0.8, 0.6, 0.8, 0.7, 0.9],
     },
     chords: {
-      level0: [0], // Stille
-      // level1: [1], // Ganze Note
-      level1: [1, 0, 0.7, 0], // Halbe Noten
-      level2: [1, 0, 0.7, 0], // Halbe Noten
-      level3: [0.9, 0, 0.7, 0, 0.8, 0, 0.7, 0], // Synkopiert
-      level4: [1, 0.6, 0.8, 0.5, 0.9, 0.6, 0.7, 0.8], // Rhythmisch komplex
+      level0: [0],
+
+      level1: [1, 0, 0.7, 0],
+      level2: [1, 0, 0.7, 0],
+      level3: [0.9, 0, 0.7, 0, 0.8, 0, 0.7, 0],
+      level4: [1, 0.6, 0.8, 0.5, 0.9, 0.6, 0.7, 0.8],
     },
   }
 
+  /**
+   * Defines arpeggio patterns for different levels of complexity.
+   * The patterns are represented as functions that take an array of notes and return a new array of notes.
+   * The `level2` pattern simply returns the input notes.
+   * The `level3` pattern returns the input notes with the middle notes reversed.
+   * The `level4` pattern returns a specific sequence of the input notes.
+   */
   private arpeggioPatterns = {
-    level2: (notes: string[]) => notes, // Aufwärts
+    level2: (notes: string[]) => notes,
     level3: (notes: string[]) => {
-      // Auf-Ab Pattern
       return [...notes, ...notes.slice(1, -1).reverse()]
     },
     level4: (notes: string[]) => {
-      // Komplexes Pattern mit Wiederholungen
       const pattern = [...notes]
       return [
         pattern[0],
@@ -44,6 +58,18 @@ export class PatternGenerator {
     },
   }
 
+  /**
+   * Generates a pattern based on the provided type and level.
+   *
+   * If the type is 'arpeggio' and the level is greater than 1, it uses the corresponding arpeggio pattern function to transform the input notes.
+   * If the type is 'bass' or 'chords', it retrieves the rhythm pattern for the given level and returns an object with the pattern and the input notes.
+   * If the type is neither 'arpeggio' nor 'bass' or 'chords', it simply returns the input notes.
+   *
+   * @param type - The type of pattern to generate ('bass', 'chords', or 'arpeggio').
+   * @param level - The complexity level of the pattern (0-4).
+   * @param notes - The notes to use for the pattern.
+   * @returns The generated pattern or the input notes if the type is not recognized.
+   */
   generatePattern(
     type: 'bass' | 'chords' | 'arpeggio',
     level: number,
@@ -65,8 +91,6 @@ export class PatternGenerator {
         notes,
       }
     }
-
-    // Default case for 'arpeggio' with level <= 1
     return notes
   }
 }

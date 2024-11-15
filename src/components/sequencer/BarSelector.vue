@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * Defines the props for the BarSelector component.
+ *
+ * @prop {number} bars - The number of bars to display in the bar selector.
+ * @default 4
+ */
 const props = defineProps({
   bars: {
     type: Number,
@@ -6,9 +12,32 @@ const props = defineProps({
   },
 })
 
+/**
+ * An array of available bar options for the BarSelector component.
+ */
 const barOptions = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52]
+
+/**
+ * Emits an event to update the number of bars in the BarSelector component.
+ *
+ * @param {number} bars - The new number of bars to display.
+ * @emits {string} update:bars - Emits an event to update the bars prop.
+ */
+
+/**
+ * Emits an event to update the number of bars in the BarSelector component.
+ *
+ * @param {number} bars - The new number of bars to display.
+ * @emits {string} update:bars - Emits an event to update the bars prop.
+ */
 const emit = defineEmits(['update:bars'])
 
+/**
+ * Emits an event to update the number of bars in the BarSelector component.
+ *
+ * @param {number} bars - The new number of bars to display.
+ * @emits {string} update:bars - Emits an event to update the bars prop.
+ */
 const updateBars = (bars: number) => {
   emit('update:bars', bars)
 }

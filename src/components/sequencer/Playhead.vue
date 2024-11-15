@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+/**
+ * Defines the props for the Playhead component.
+ *
+ * @param {number} position - The current position of the playhead.
+ * @param {number} [progress=0] - The current progress of the playhead.
+ * @param {number} [startPosition=0] - The starting position of the playhead.
+ * @param {number} totalBars - The total number of bars in the sequence.
+ * @param {number} [barWidth=12] - The width of each bar in the sequence.
+ * @param {number} [barGap=4] - The gap between each bar in the sequence.
+ * @param {boolean} [isLooping=false] - Whether the sequence is looping.
+ */
 const props = defineProps({
   position: {
     type: Number,
@@ -32,6 +43,18 @@ const props = defineProps({
   },
 })
 
+/**
+ * Computes the position of the playhead based on the current position, progress, and other configuration options.
+ *
+ * @param {number} props.position - The current position of the playhead.
+ * @param {number} props.progress - The current progress of the playhead.
+ * @param {number} props.startPosition - The starting position of the playhead.
+ * @param {number} props.totalBars - The total number of bars in the sequence.
+ * @param {number} props.barWidth - The width of each bar in the sequence.
+ * @param {number} props.barGap - The gap between each bar in the sequence.
+ * @param {boolean} props.isLooping - Whether the sequence is looping.
+ * @returns {Object} - The computed position of the playhead.
+ */
 const playheadPosition = computed(() => {
   const weekWidth = props.barWidth + props.barGap
   const basePosition = props.position * weekWidth
@@ -64,8 +87,8 @@ const playheadPosition = computed(() => {
 
 .playhead {
   position: absolute;
+  z-index: 5;
   height: calc(100% + 8px);
-  transition: left 0.1s linear;
 }
 
 .no-transition {
