@@ -3,6 +3,138 @@ import { ref, readonly, onUnmounted } from 'vue'
 import { HarmonyManager } from './HarmonyManager'
 import { PatternGenerator } from './PatternGenerator'
 
+const DEBUG = true
+
+type BassSynthParams = {
+  cutoff: number
+  resonance: number
+  attack: number
+  decay: number
+  sustain: number
+  release: number
+  volume: number
+}
+
+export type PadSynthParams = {
+  cutoff: number
+  reverbMix: number
+  attack: number
+  decay: number
+  sustain: number
+  release: number
+  volume: number
+  chorus: boolean
+  modAttack: number
+  modDecay: number
+  modSustain: number
+  modRelease: number
+}
+
+type LeadSynthParams = {
+  cutoff: number
+  delayTime: number
+  delayFeedback: number
+  reverbMix: number
+  attack: number
+  decay: number
+  sustain: number
+  release: number
+  volume: number
+  distortion: boolean
+}
+
+interface SynthState {
+  isPlaying: boolean
+  synthParams: {
+    bass: BassSynthParams
+    pad: PadSynthParams
+    lead: LeadSynthParams
+  }
+}
+
+const synthState = ref<SynthState>({
+  isPlaying: false,
+  synthParams: {
+    bass: {
+      cutoff: 200,
+      resonance: 2,
+      attack: 0.8,
+      decay: 1.2,
+      sustain: 0,
+      release: 1.6,
+      volume: 0,
+    },
+    pad: {
+      cutoff: 2000,
+      reverbMix: 0.85,
+      attack: 0.8,
+      decay: 1.8,
+      sustain: 0.9,
+      release: 3.0,
+      volume: 4,
+      chorus: true,
+      modAttack: 1,
+      modDecay: 0.6,
+      modSustain: 0.7,
+      modRelease: 2.2,
+    },
+    lead: {
+      cutoff: 2000,
+      delayTime: 0.25,
+      delayFeedback: 0.35,
+      reverbMix: 0.3,
+      attack: 0.02,
+      decay: 0.3,
+      sustain: 0.6,
+      release: 0.8,
+      volume: -18,
+      distortion: true,
+    },
+  },
+})
+
+function isBassParam(param: string): param is keyof BassSynthParams {
+  return ['cutoff', 'resonance', 'attack', 'decay', 'sustain', 'release', 'volume'].includes(param)
+}
+
+function isPadParam(param: string): param is keyof PadSynthParams {
+  return [
+    'cutoff',
+    'reverbMix',
+    'attack',
+    'decay',
+    'sustain',
+    'release',
+    'volume',
+    'chorus',
+    'modAttack',
+    'modDecay',
+    'modSustain',
+    'modRelease',
+  ].includes(param)
+}
+
+function isLeadParam(param: string): param is keyof LeadSynthParams {
+  return [
+    'cutoff',
+    'delayTime',
+    'delayFeedback',
+    'reverbMix',
+    'attack',
+    'decay',
+    'sustain',
+    'release',
+    'volume',
+    'distortion',
+  ].includes(param)
+}
+
+const activeSynths = ref({
+  bass: false,
+  pad: false,
+  lead: false,
+})
+
 /**
  * Represents a pattern of notes to be played.
  * @property {number[]} pattern - An array of numbers representing the pattern of notes.
@@ -36,24 +168,41 @@ export function useOrchestrator() {
     animationFrameId = requestAnimationFrame(animate)
   }
 
-  /**
-   * Starts the audio playback by setting the `isPlaying` flag to `true` and calling the `animate` function to begin the animation loop.
-   */
-  const startPlayback = () => {
+  const startPlayback = async () => {
+    await initAudioContext()
+
     isPlaying.value = true
+    synthState.value.isPlaying = true
+
+    if (DEBUG) {
+      console.log('🚀 Playback Initialization:', {
+        audioContext: Tone.getContext().state,
+        isPlaying: isPlaying.value,
+        synthState: synthState.value.isPlaying,
+      })
+    }
+
     animate()
   }
 
-  /**
-   * Stops the audio playback by setting the `isPlaying` flag to `false`, canceling the animation frame, and releasing all voices on the `padSynth`.
-   */
   const stopPlayback = () => {
     isPlaying.value = false
+    synthState.value.isPlaying = false
+
+    activeSynths.value = {
+      bass: false,
+      pad: false,
+      lead: false,
+    }
+
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
       animationFrameId = null
     }
+
+    bassSynth.triggerRelease()
     padSynth.releaseAll()
+    leadSynth.triggerRelease()
   }
 
   /**
@@ -118,24 +267,30 @@ export function useOrchestrator() {
     return voiceStatus.value.active < MAX_VOICES
   }
 
-  /**
-   * Defines the effects applied to the bass synth in the audio orchestrator.
-   * The bass synth is filtered using a lowpass filter with a frequency of 200 Hz and a rolloff of -24 dB/octave. The volume of the bass synth is also reduced by 28 dB.
-   */
   const bassEffects = {
     filter: new Tone.Filter({
       frequency: 200,
       type: 'lowpass',
       rolloff: -24,
+      Q: 2,
     }),
-    volume: new Tone.Volume(-28),
+    volume: new Tone.Volume(0),
   }
+
+  const bassSynth = new Tone.MonoSynth({
+    oscillator: { type: 'square8' },
+    envelope: { attack: 0.8, decay: 1.2, sustain: 0.2, release: 1.6 },
+  }).chain(bassEffects.filter, bassEffects.volume, Tone.Destination)
 
   /**
    * Defines the effects applied to the pad synth in the audio orchestrator.
    * The pad synth is processed through a reverb effect with a decay time of 8 seconds and a wet mix of 85%. It is also processed through a chorus effect with a frequency of 0.5 Hz, a depth of 0.8, and a wet mix of 30%. Finally, the volume of the pad synth is increased by 4 dB.
    */
   const padEffects = {
+    filter: new Tone.Filter({
+      frequency: 2000,
+      type: 'lowpass',
+    }),
     reverb: new Tone.Reverb({
       decay: 8,
       wet: 0.85,
@@ -147,34 +302,6 @@ export function useOrchestrator() {
     }),
     volume: new Tone.Volume(4),
   }
-
-  /**
-   * Defines the effects applied to the lead synth in the audio orchestrator.
-   * The lead synth is processed through a ping-pong delay effect with a delay time of 16th notes, a feedback of 35%, and a wet mix of 40%. It is also processed through an auto-filter effect with a frequency of 0.8 Hz, a depth of 0.4, a sine wave type, and a wet mix of 30%. Finally, the volume of the lead synth is reduced by 24 dB.
-   */
-  const leadEffects = {
-    delay: new Tone.PingPongDelay({
-      delayTime: '16n',
-      feedback: 0.35,
-      wet: 0.4,
-    }),
-    filter: new Tone.AutoFilter({
-      frequency: 0.8,
-      depth: 0.4,
-      type: 'sine',
-      wet: 0.3,
-    }),
-    volume: new Tone.Volume(-24),
-  }
-
-  /**
-   * Defines the bass synth in the audio orchestrator.
-   * The bass synth uses a square wave oscillator and an envelope with a relatively long attack, decay, and release to create a deep, sustained bass sound. The bass synth is processed through a lowpass filter to remove high frequencies and a volume effect to reduce the overall volume.
-   */
-  const bassSynth = new Tone.MonoSynth({
-    oscillator: { type: 'square8' },
-    envelope: { attack: 0.8, decay: 1.2, sustain: 0.2, release: 1.6 },
-  }).chain(bassEffects.filter, bassEffects.volume, Tone.Destination)
 
   /**
    * Defines the pad synth in the audio orchestrator.
@@ -199,7 +326,37 @@ export function useOrchestrator() {
       },
       harmonicity: 1.5,
     })
-    .chain(padEffects.chorus, padEffects.reverb, padEffects.volume, Tone.Destination)
+    .chain(
+      padEffects.filter,
+      padEffects.chorus,
+      padEffects.reverb,
+      padEffects.volume,
+      Tone.Destination,
+    )
+
+  /**
+   * Defines the effects applied to the lead synth in the audio orchestrator.
+   * The lead synth is processed through a ping-pong delay effect with a delay time of 16th notes, a feedback of 35%, and a wet mix of 40%. It is also processed through an auto-filter effect with a frequency of 0.8 Hz, a depth of 0.4, a sine wave type, and a wet mix of 30%. Finally, the volume of the lead synth is reduced by 24 dB.
+   */
+  const leadEffects = {
+    delay: new Tone.PingPongDelay({
+      delayTime: '16n',
+      feedback: 0.35,
+      wet: 0.4,
+    }),
+    filter: new Tone.AutoFilter({
+      frequency: 0.8,
+      depth: 0.4,
+      type: 'sine',
+      wet: 0.3,
+    }),
+    reverb: new Tone.Reverb({
+      decay: 2.5,
+      wet: 0.3,
+    }),
+    distortion: new Tone.Distortion(0.8),
+    volume: new Tone.Volume(-18),
+  }
 
   /**
    * Defines the lead synth in the audio orchestrator.
@@ -228,7 +385,113 @@ export function useOrchestrator() {
       baseFrequency: 2000,
       octaves: 1.5,
     },
-  }).chain(leadEffects.filter, leadEffects.delay, leadEffects.volume, Tone.Destination)
+  }).chain(
+    leadEffects.filter,
+    leadEffects.delay,
+    leadEffects.distortion,
+    leadEffects.reverb,
+    leadEffects.volume,
+    Tone.Destination,
+  )
+
+  const updateSynthParam = <T extends keyof SynthState['synthParams']>(
+    synthType: T,
+    param: keyof SynthState['synthParams'][T],
+    value: SynthState['synthParams'][T][keyof SynthState['synthParams'][T]],
+  ) => {
+    if (DEBUG) {
+      console.log('🎛️ Parameter Update:', {
+        type: synthType,
+        param,
+        value,
+        isActive: activeSynths.value[synthType],
+      })
+    }
+
+    synthState.value.synthParams[synthType][param] = value
+
+    if (Tone.getContext().state === 'running' && activeSynths.value[synthType]) {
+      switch (synthType) {
+        case 'bass':
+          if (typeof param === 'string' && isBassParam(param)) {
+            switch (param) {
+              case 'cutoff':
+                bassEffects.filter.frequency.rampTo(value as number, 0.1)
+                break
+              case 'resonance':
+                bassEffects.filter.Q.rampTo(value as number, 0.1)
+                break
+              case 'volume':
+                bassEffects.volume.volume.rampTo(value as number, 0.1)
+                break
+              default:
+                bassSynth.set({
+                  envelope: { [param]: value },
+                })
+            }
+          }
+          break
+
+        case 'pad':
+          if (typeof param === 'string' && isPadParam(param)) {
+            switch (param) {
+              case 'cutoff':
+                padEffects.filter.frequency.rampTo(value as number, 0.1)
+                break
+              case 'reverbMix':
+                padEffects.reverb.wet.rampTo(value as number, 0.1)
+                break
+              case 'volume':
+                padEffects.volume.volume.rampTo(value as number, 0.1)
+                break
+              case 'chorus':
+                padEffects.chorus.wet.value = (value as boolean) ? 0.3 : 0
+                break
+              default:
+                if (typeof param === 'string' && param.startsWith('mod')) {
+                  padSynth.set({
+                    modulationEnvelope: { [param.slice(3).toLowerCase()]: value },
+                  })
+                } else {
+                  padSynth.set({
+                    envelope: { [param]: value },
+                  })
+                }
+            }
+          }
+          break
+
+        case 'lead':
+          if (typeof param === 'string' && isLeadParam(param)) {
+            switch (param) {
+              case 'cutoff':
+                leadEffects.filter.frequency.rampTo(value as number, 0.1)
+                break
+              case 'delayTime':
+                leadEffects.delay.delayTime.rampTo(value as number, 0.1)
+                break
+              case 'delayFeedback':
+                leadEffects.delay.feedback.rampTo(value as number, 0.1)
+                break
+              case 'reverbMix':
+                leadEffects.reverb.wet.rampTo(value as number, 0.1)
+                break
+              case 'volume':
+                leadEffects.volume.volume.rampTo(value as number, 0.1)
+                break
+              case 'distortion':
+                leadEffects.distortion.wet.value = (value as boolean) ? 0.8 : 0
+                break
+              default:
+                leadSynth.set({
+                  envelope: { [param]: value },
+                })
+            }
+          }
+          break
+      }
+    }
+  }
 
   /**
    * Manages the harmony and chord progressions in the audio orchestrator.
@@ -285,22 +548,70 @@ export function useOrchestrator() {
     }
   }
 
-  /**
-   * Plays a musical pattern, such as a bass line, chord progression, or arpeggio, using the audio orchestrator.
-   * This function initializes the audio context, generates the specified pattern, and triggers the notes on the appropriate synths.
-   * It manages the active voices to ensure the maximum number of voices is not exceeded.
-   *
-   * @param type - The type of pattern to play, either 'bass', 'chords', or 'arpeggio'.
-   * @param level - The level of complexity for the pattern, used to generate the pattern.
-   * @param notes - The notes to use for the pattern.
-   * @returns {Promise<void>} A promise that resolves when the pattern has been played.
-   */
   const playPattern = async (
     type: 'bass' | 'chords' | 'arpeggio',
     level: number,
     notes: string[],
   ) => {
     await initAudioContext()
+
+    switch (type) {
+      case 'bass':
+        activeSynths.value.bass = true
+        const bassParams = synthState.value.synthParams.bass
+
+        bassEffects.filter.frequency.value = bassParams.cutoff
+        bassEffects.filter.Q.value = bassParams.resonance
+        bassEffects.volume.volume.value = bassParams.volume
+        bassSynth.set({
+          envelope: {
+            attack: bassParams.attack,
+            decay: bassParams.decay,
+            sustain: bassParams.sustain,
+            release: bassParams.release,
+          },
+        })
+
+        if (DEBUG) {
+          console.log('🎹 Bass Pattern Start:', {
+            params: bassParams,
+            isActive: activeSynths.value.bass,
+          })
+        }
+        break
+
+      case 'chords':
+        activeSynths.value.pad = true
+        const padParams = synthState.value.synthParams.pad
+
+        padEffects.filter.frequency.value = padParams.cutoff
+        padEffects.reverb.wet.value = padParams.reverbMix
+        padEffects.volume.volume.value = padParams.volume
+        padEffects.chorus.wet.value = padParams.chorus ? 0.3 : 0
+
+        padSynth.set({
+          envelope: {
+            attack: padParams.attack,
+            decay: padParams.decay,
+            sustain: padParams.sustain,
+            release: padParams.release,
+          },
+          modulationEnvelope: {
+            attack: padParams.modAttack,
+            decay: padParams.modDecay,
+            sustain: padParams.modSustain,
+            release: padParams.modRelease,
+          },
+        })
+
+        if (DEBUG) {
+          console.log('🎹 Pad Pattern Start:', {
+            params: padParams,
+            isActive: activeSynths.value.pad,
+          })
+        }
+        break
+    }
 
     if (!notes?.length) return
 
@@ -443,10 +754,17 @@ export function useOrchestrator() {
     stopPlayback,
     playPattern,
     updateHarmony,
+    synthState,
+    updateSynthParam,
     currentKey,
     currentScale,
     voiceStatus: readonly(voiceStatus),
     currentBPM,
     updateBPM,
+    bassSynth,
+    padSynth,
+    padEffects,
+    leadSynth,
+    leadEffects,
   }
 }
