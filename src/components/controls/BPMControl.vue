@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  name: 'BPMControl',
+}
+</script>
+
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useOrchestrator } from '../../composables/audio/useOrchestrator'
