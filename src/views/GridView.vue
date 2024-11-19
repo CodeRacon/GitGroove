@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import { defineComponent } from 'vue'
+
 import { ref, onMounted, nextTick, watch } from 'vue' // watch hinzugefügt
 import { useGitHubStore } from '../stores/github.store'
 import { useSequencer } from '../composables/useSequencer'
 import { useOrchestrator } from '../composables/audio/useOrchestrator'
+
 import BarSelector from '../components/sequencer/BarSelector.vue'
 import BracketSelector from '../components/sequencer/BracketSelector.vue'
 import PlayPauseButton from '../components/controls/PlayPauseButton.vue'
 import Playhead from '../components/sequencer/Playhead.vue'
 import BPMControl from '../components/controls/BPMControl.vue'
+import BassSynthPanel from '../components/controls/synth/BassSynthPanel.vue'
+import PadSynthPanel from '../components/controls/synth/PadSynthPanel.vue'
+import LeadSynthPanel from '../components/controls/synth/LeadSynthPanel.vue'
 import * as Tone from 'tone'
 
 /**
@@ -210,6 +216,11 @@ watch(sequencer.currentBar, (weekIndex) => {
 
       <BPMControl :bpm="sequencer.bpm.value" @update:bpm="handleBPMChange" />
     </div>
+    <div class="synth-panels">
+      <BassSynthPanel />
+      <PadSynthPanel />
+      <LeadSynthPanel />
+    </div>
   </main>
 </template>
 
@@ -329,5 +340,15 @@ button:hover {
   align-items: center;
   gap: 2rem;
   justify-content: center;
+}
+
+.synth-panels {
+  bottom: 2rem;
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  padding: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 </style>
