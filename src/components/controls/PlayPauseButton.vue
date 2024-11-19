@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  name: 'PlayPauseButton',
+}
+</script>
+
 <script setup lang="ts">
 import { ref } from 'vue'
 
