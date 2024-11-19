@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  name: 'BracketSelector',
+}
+</script>
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 

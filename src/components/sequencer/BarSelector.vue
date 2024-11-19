@@ -1,3 +1,8 @@
+<script lang="ts">
+export default {
+  name: 'BarSelector',
+}
+</script>
 <script setup lang="ts">
 /**
  * Defines the props for the BarSelector component.
