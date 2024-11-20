@@ -10,9 +10,11 @@ import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
 import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
+import { useSynthControls } from '../../../composables/audio/useSynthControls'
 import type { PadSynthParams } from '../../../composables/audio/useSynthState'
 
-const { synthState, updateSynthParam } = useOrchestrator()
+const { updateSynthParam, synthState } = useOrchestrator()
+const { toggleSolo, toggleMute } = useSynthControls()
 
 const padParams = computed(() => synthState.value.synthParams.pad)
 
@@ -34,10 +36,6 @@ const updateEnvelopeParam = (param: string, value: number) => {
 const updateVolume = (value: number) => updateSynthParam('pad', 'volume', value)
 const updateCutoff = (value: number) => updateSynthParam('pad', 'cutoff', value)
 const updateReverbMix = (value: number) => updateSynthParam('pad', 'reverbMix', value)
-const updateAttack = (value: number) => updateEnvelopeParam('attack', value)
-const updateDecay = (value: number) => updateEnvelopeParam('decay', value)
-const updateSustain = (value: number) => updateEnvelopeParam('sustain', value)
-const updateRelease = (value: number) => updateEnvelopeParam('release', value)
 const toggleModulation = (value: boolean) => {
   isModulation.value = value
 }
@@ -48,6 +46,22 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
   <div class="pad-synth-panel">
     <div class="panel-header">
       <h3>Pad Synth</h3>
+      <div class="control-buttons">
+        <button
+          class="control-btn"
+          :class="{ active: synthState.soloState === 'pad' }"
+          @click="() => toggleSolo('pad')"
+        >
+          S
+        </button>
+        <button
+          class="control-btn"
+          :class="{ active: synthState.muteState.has('pad') }"
+          @click="() => toggleMute('pad')"
+        >
+          M
+        </button>
+      </div>
     </div>
 
     <div class="controls-grid">
@@ -150,9 +164,42 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
 }
 
 .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
   border-bottom: 1px solid #333;
   padding-bottom: 8px;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.control-btn {
+  width: 24px;
+  height: 20px;
+  background: #2a2a2a;
+  border: 1px solid #3333338d;
+  border-radius: 4px;
+  color: #888;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background: #333;
+  color: #fff;
+}
+
+.control-btn.active {
+  color: #1a1a1a;
+  background: #4caf50;
+  box-shadow: 0 0 4px #4caf50;
 }
 
 .panel-header h3 {

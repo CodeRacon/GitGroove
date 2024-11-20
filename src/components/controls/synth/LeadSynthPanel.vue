@@ -5,13 +5,15 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
 import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
+import { useSynthControls } from '../../../composables/audio/useSynthControls'
 
-const { synthState, updateSynthParam } = useOrchestrator()
+const { updateSynthParam, synthState } = useOrchestrator()
+const { toggleSolo, toggleMute } = useSynthControls()
 
 const leadParams = computed(() => synthState.value.synthParams.lead)
 
@@ -31,6 +33,22 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
   <div class="lead-synth-panel">
     <div class="panel-header">
       <h3>Lead Synth</h3>
+      <div class="control-buttons">
+        <button
+          class="control-btn"
+          :class="{ active: synthState.soloState === 'lead' }"
+          @click="() => toggleSolo('lead')"
+        >
+          S
+        </button>
+        <button
+          class="control-btn"
+          :class="{ active: synthState.muteState.has('lead') }"
+          @click="() => toggleMute('lead')"
+        >
+          M
+        </button>
+      </div>
     </div>
 
     <div class="controls-grid">
@@ -144,9 +162,42 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 }
 
 .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
   border-bottom: 1px solid #333;
   padding-bottom: 8px;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.control-btn {
+  width: 24px;
+  height: 20px;
+  background: #2a2a2a;
+  border: 1px solid #3333338d;
+  border-radius: 4px;
+  color: #888;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background: #333;
+  color: #fff;
+}
+
+.control-btn.active {
+  color: #1a1a1a;
+  background: #4caf50;
+  box-shadow: 0 0 4px #4caf50;
 }
 
 .panel-header h3 {
