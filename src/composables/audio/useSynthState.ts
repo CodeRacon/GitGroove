@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 
+export type SynthType = 'bass' | 'pad' | 'lead'
+
 export type BassSynthParams = {
   cutoff: number
   resonance: number
@@ -44,6 +46,13 @@ export interface SynthState {
     bass: BassSynthParams
     pad: PadSynthParams
     lead: LeadSynthParams
+  }
+  soloState: 'none' | 'bass' | 'pad' | 'lead'
+  muteState: Set<'bass' | 'pad' | 'lead'>
+  previousVolumes: {
+    bass: number
+    pad: number
+    lead: number
   }
 }
 
@@ -92,6 +101,13 @@ const synthState = ref<SynthState>({
       volume: -18,
       distortion: false,
     },
+  },
+  soloState: 'none',
+  muteState: new Set(),
+  previousVolumes: {
+    bass: -12,
+    pad: -8,
+    lead: -16,
   },
 })
 
