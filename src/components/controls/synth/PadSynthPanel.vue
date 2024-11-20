@@ -10,7 +10,7 @@ import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
 import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
-import { PadSynthParams } from '../../../composables/audio/useOrchestrator'
+import type { PadSynthParams } from '../../../composables/audio/useSynthState'
 
 const { synthState, updateSynthParam } = useOrchestrator()
 
@@ -31,29 +31,17 @@ const updateEnvelopeParam = (param: string, value: number) => {
   updateSynthParam('pad', paramName as keyof PadSynthParams, value)
 }
 
-const updateVolume = (value: number) => {
-  updateSynthParam('pad', 'volume', value)
-}
-
-const updateCutoff = (value: number) => {
-  updateSynthParam('pad', 'cutoff', value)
-}
-
-const updateReverbMix = (value: number) => {
-  updateSynthParam('pad', 'reverbMix', value)
-}
-
-const updateAttack = (value: number) => updateEnvelopeParam('Attack', value)
-const updateDecay = (value: number) => updateEnvelopeParam('Decay', value)
-const updateSustain = (value: number) => updateEnvelopeParam('Sustain', value)
-const updateRelease = (value: number) => updateEnvelopeParam('Release', value)
-
+const updateVolume = (value: number) => updateSynthParam('pad', 'volume', value)
+const updateCutoff = (value: number) => updateSynthParam('pad', 'cutoff', value)
+const updateReverbMix = (value: number) => updateSynthParam('pad', 'reverbMix', value)
+const updateAttack = (value: number) => updateEnvelopeParam('attack', value)
+const updateDecay = (value: number) => updateEnvelopeParam('decay', value)
+const updateSustain = (value: number) => updateEnvelopeParam('sustain', value)
+const updateRelease = (value: number) => updateEnvelopeParam('release', value)
 const toggleModulation = (value: boolean) => {
   isModulation.value = value
 }
-const toggleChorus = (value: boolean) => {
-  updateSynthParam('pad', 'chorus', value)
-}
+const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value)
 </script>
 
 <template>
@@ -66,8 +54,8 @@ const toggleChorus = (value: boolean) => {
       <div class="volume-section">
         <Fader
           v-model="padParams.volume"
-          :min="-24"
-          :max="24"
+          :min="-60"
+          :max="40"
           :step="0.5"
           label="Volume"
           unit="dB"
@@ -98,7 +86,7 @@ const toggleChorus = (value: boolean) => {
       <div class="knob-section envelope">
         <RotaryKnob
           v-model="envelopeParams.attack"
-          :min="0.1"
+          :min="0.0"
           :max="4"
           :step="0.1"
           :label="isModulation ? 'Mod Attack' : 'Attack'"

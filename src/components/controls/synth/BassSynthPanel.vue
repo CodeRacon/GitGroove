@@ -7,44 +7,20 @@ export default {
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import RotaryKnob from '../common/RotaryKnob.vue'
-import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
-import { useSynthControls } from '../../../composables/audio/useSynthControls'
 import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
 
 const { synthState, updateSynthParam } = useOrchestrator()
 
-const { updateBassParams } = useSynthControls()
-
 const bassParams = computed(() => synthState.value.synthParams.bass)
 
-const updateVolume = (value: number) => {
-  updateSynthParam('bass', 'volume', value)
-}
-
-const updateCutoff = (value: number) => {
-  updateSynthParam('bass', 'cutoff', value)
-}
-
-const updateResonance = (value: number) => {
-  updateSynthParam('bass', 'resonance', value)
-}
-
-const updateAttack = (value: number) => {
-  updateSynthParam('bass', 'attack', value)
-}
-
-const updateDecay = (value: number) => {
-  updateSynthParam('bass', 'decay', value)
-}
-
-const updateSustain = (value: number) => {
-  updateSynthParam('bass', 'sustain', value)
-}
-
-const updateRelease = (value: number) => {
-  updateSynthParam('bass', 'release', value)
-}
+const updateVolume = (value: number) => updateSynthParam('bass', 'volume', value)
+const updateCutoff = (value: number) => updateSynthParam('bass', 'cutoff', value)
+const updateResonance = (value: number) => updateSynthParam('bass', 'resonance', value)
+const updateAttack = (value: number) => updateSynthParam('bass', 'attack', value)
+const updateDecay = (value: number) => updateSynthParam('bass', 'decay', value)
+const updateSustain = (value: number) => updateSynthParam('bass', 'sustain', value)
+const updateRelease = (value: number) => updateSynthParam('bass', 'release', value)
 </script>
 
 <template>
@@ -89,9 +65,9 @@ const updateRelease = (value: number) => {
       <div class="knob-section envelope">
         <RotaryKnob
           v-model="bassParams.attack"
-          :min="0.01"
+          :min="0.0"
           :max="1"
-          :step="0.01"
+          :step="0.1"
           label="Attack"
           @update:modelValue="updateAttack"
         />

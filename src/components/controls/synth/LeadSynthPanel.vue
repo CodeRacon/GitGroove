@@ -5,28 +5,26 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
 import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
-import { useSynthControls } from '../../../composables/audio/useSynthControls'
 
-const { synthState } = useOrchestrator()
-const { updateLeadParams } = useSynthControls()
+const { synthState, updateSynthParam } = useOrchestrator()
 
 const leadParams = computed(() => synthState.value.synthParams.lead)
 
-const updateVolume = (value: number) => updateLeadParams.volume(value)
-const updateCutoff = (value: number) => updateLeadParams.cutoff(value)
-const updateDelayTime = (value: number) => updateLeadParams.delayTime(value)
-const updateDelayFeedback = (value: number) => updateLeadParams.delayFeedback(value)
-const updateReverbMix = (value: number) => updateLeadParams.reverbMix(value)
-const updateAttack = (value: number) => updateLeadParams.attack(value)
-const updateDecay = (value: number) => updateLeadParams.decay(value)
-const updateSustain = (value: number) => updateLeadParams.sustain(value)
-const updateRelease = (value: number) => updateLeadParams.release(value)
-const toggleDistortion = (value: boolean) => updateLeadParams.distortion(value)
+const updateVolume = (value: number) => updateSynthParam('lead', 'volume', value)
+const updateCutoff = (value: number) => updateSynthParam('lead', 'cutoff', value)
+const updateDelayTime = (value: number) => updateSynthParam('lead', 'delayTime', value)
+const updateDelayFeedback = (value: number) => updateSynthParam('lead', 'delayFeedback', value)
+const updateReverbMix = (value: number) => updateSynthParam('lead', 'reverbMix', value)
+const updateAttack = (value: number) => updateSynthParam('lead', 'attack', value)
+const updateDecay = (value: number) => updateSynthParam('lead', 'decay', value)
+const updateSustain = (value: number) => updateSynthParam('lead', 'sustain', value)
+const updateRelease = (value: number) => updateSynthParam('lead', 'release', value)
+const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortion', value)
 </script>
 
 <template>
@@ -39,8 +37,8 @@ const toggleDistortion = (value: boolean) => updateLeadParams.distortion(value)
       <div class="volume-section">
         <Fader
           v-model="leadParams.volume"
-          :min="-24"
-          :max="24"
+          :min="-60"
+          :max="40"
           :step="0.5"
           label="Volume"
           unit="dB"
@@ -88,9 +86,9 @@ const toggleDistortion = (value: boolean) => updateLeadParams.distortion(value)
       <div class="knob-section envelope">
         <RotaryKnob
           v-model="leadParams.attack"
-          :min="0.01"
+          :min="0.0"
           :max="1"
-          :step="0.01"
+          :step="0.1"
           label="Attack"
           @update:modelValue="updateAttack"
         />
