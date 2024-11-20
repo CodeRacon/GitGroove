@@ -7,7 +7,7 @@ export class PatternGenerator {
   /**
    * Defines rhythm patterns for bass and chords at different levels of complexity.
    * The patterns are represented as arrays of numbers, where each number represents
-   * the duration of a note relative to the beat.
+   * the velocity of a note.
    *
    * The `bass` and `chords` properties each contain patterns for their respective
    * instrument types, with different levels of complexity represented by the `level#`
@@ -16,14 +16,14 @@ export class PatternGenerator {
   private rhythmPatterns = {
     bass: {
       level0: [0],
-      level1: [1, 0, 0, 0],
-      level2: [1, 0, 0.7, 0],
-      level3: [1, 0.6, 0.8, 0.6],
-      level4: [1, 0.7, 0.9, 0.8, 0.6, 0.8, 0.7, 0.9],
+      level1: [0.8, 0, 0, 0],
+      level2: [0.8, 0, 0, 0.6],
+      level3: [0.8, 0, 0.6, 0],
+      level4: [0.8, 0, 0.7, 0, 0.6, 0, 0, 0],
     },
+
     chords: {
       level0: [0],
-
       level1: [1, 0, 0.7, 0],
       level2: [1, 0, 0.7, 0],
       level3: [0.9, 0, 0.7, 0, 0.8, 0, 0.7, 0],
