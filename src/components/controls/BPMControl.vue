@@ -7,6 +7,7 @@ export default {
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useOrchestrator } from '../../composables/audio/useOrchestrator'
+import Fader from './common/Fader.vue'
 
 /**
  * Defines the props for the `BPMControl` component.
@@ -27,63 +28,28 @@ const props = defineProps({
  */
 const emit = defineEmits(['update:bpm'])
 
-/**
- * Updates the BPM (beats per minute) value and emits an event to notify listeners.
- *
- * @param {Event} event - The input event from the BPM range slider.
- * @emits {update:bpm} - Emits the new BPM value.
- */
-const updateBPM = (event: Event) => {
-  const value = parseInt((event.target as HTMLInputElement).value)
+const handleBPMChange = (value: number) => {
   emit('update:bpm', value)
 }
 </script>
 
 <template>
   <div class="bpm-control">
-    <label>BPM</label>
-    <div class="control-group">
-      <input type="range" :value="bpm" min="30" max="300" @input="updateBPM" />
-      <span class="bpm-display">{{ bpm }}</span>
-    </div>
+    <Fader
+      :model-value="bpm"
+      :min="30"
+      :max="300"
+      :step="1"
+      :decimals="0"
+      label="Tempo"
+      unit="BPM"
+      @update:model-value="handleBPMChange"
+    />
   </div>
 </template>
 
 <style scoped>
 .bpm-control {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  color: white;
-}
-
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-input[type='range'] {
-  -webkit-appearance: none;
-  width: 200px;
-  height: 4px;
-  background: #42b883;
-  border-radius: 2px;
-  cursor: pointer;
-}
-
-input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  background: white;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.bpm-display {
-  min-width: 3ch;
-  font-weight: bold;
-  font-family: monospace;
+  width: 12rem;
 }
 </style>
