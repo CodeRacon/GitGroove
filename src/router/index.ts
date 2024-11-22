@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/GridView.vue'
+import GridView from '../views/GridView.vue'
+import Glossary from '@/views/Glossary.vue'
+import Imprint from '@/views/Imprint.vue'
 
 /**
  * Creates a Vue Router instance with a single route that renders the `HomeView` component.
@@ -11,8 +13,18 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      name: '',
+      component: GridView,
+    },
+    {
+      path: '/glossary',
+      name: 'glossary',
+      component: Glossary,
+    },
+    {
+      path: '/imprint',
+      name: 'imprint',
+      component: Imprint,
     },
   ],
 })
