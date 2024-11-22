@@ -7,10 +7,6 @@ export default {
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-defineOptions({
-  name: 'Fader',
-})
-
 interface Props {
   modelValue: number
   min?: number
@@ -18,6 +14,7 @@ interface Props {
   step?: number
   label?: string
   unit?: string
+  decimals?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   step: 1,
   label: '',
   unit: '',
+  decimals: 1,
 })
 
 const emit = defineEmits(['update:modelValue']) // Änderung von 'update:value'
@@ -69,7 +67,7 @@ const stopDrag = () => {
 }
 
 const formattedValue = computed(() => {
-  return props.modelValue.toFixed(1)
+  return props.modelValue.toFixed(props.decimals)
 })
 </script>
 
@@ -116,7 +114,7 @@ const formattedValue = computed(() => {
 .label {
   font-size: 12px;
   color: #888;
-  margin-bottom: 8px;
+  margin-bottom: 0.75rem;
 }
 
 .value {
