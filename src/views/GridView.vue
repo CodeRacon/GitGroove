@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { defineComponent } from 'vue'
-
-import { ref, onMounted, nextTick, watch } from 'vue' // watch hinzugefügt
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { useGitHubStore } from '../stores/github.store'
 import { useSequencer } from '../composables/useSequencer'
 import { useOrchestrator } from '../composables/audio/useOrchestrator'
@@ -29,7 +27,7 @@ const username = ref('')
  * - `gridWidth`: the current width of the grid element
  * - `gridRef`: a ref to the grid element itself
  */
-const selectedBars = ref(4)
+const selectedBars = ref(8)
 const startBar = ref(0)
 const gridWidth = ref(0)
 const gridRef = ref<HTMLElement | null>(null)
@@ -179,7 +177,7 @@ watch(sequencer.currentBar, (weekIndex) => {
         v-if="sequencer.isPlaying"
         :position="sequencer.currentBar.value"
         :progress="sequencer.progress.value"
-        :start-position="startBar.value"
+        :start-position="startBar"
         :total-bars="selectedBars"
         :is-looping="sequencer.isLooping.value"
       />
@@ -207,16 +205,17 @@ watch(sequencer.currentBar, (weekIndex) => {
       </div>
     </div>
 
-    <div v-if="githubStore.contributions" class="playback-controls">
+    <div v-if="githubStore.contributions" class="playback-controls-container">
       <PlayPauseButton
         @play="handlePlayback(true)"
         @pause="handlePlayback(false)"
         @stop="sequencer.stop()"
       />
+      <div class="divider"></div>
 
       <BPMControl :bpm="sequencer.bpm.value" @update:bpm="handleBPMChange" />
     </div>
-    <div class="synth-panels">
+    <div v-if="githubStore.contributions" class="synth-panels">
       <BassSynthPanel />
       <PadSynthPanel />
       <LeadSynthPanel />
@@ -240,26 +239,40 @@ watch(sequencer.currentBar, (weekIndex) => {
 }
 
 input {
-  padding: 0.5rem;
-  border: 2px solid #42b883;
+  background-color: #cad9cb;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #4caf50;
   border-radius: 4px;
   font-size: 1rem;
+  outline: 0px solid #4caf50;
+  transition: outline-width 0.125s ease-in-out;
+}
+
+input:focus-within {
+  outline-width: 2px;
 }
 
 button {
-  padding: 0.5rem 1rem;
-  background: #42b883;
+  padding: 0.625rem 0.875rem;
+
+  background: #4caf50;
   border: none;
   border-radius: 4px;
   color: white;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
+  outline: 0px solid #4caf50;
+
   transition: all 0.2s ease-in-out;
 }
 
 button:hover {
-  background: #3aa876;
+  outline-width: 2px;
+}
+
+button:active {
+  color: #181818;
 }
 
 .status {
@@ -334,12 +347,22 @@ button:hover {
   transition: all 0.1s ease-out;
 }
 
-.playback-controls {
+.playback-controls-container {
   margin-top: 2rem;
   display: flex;
   align-items: center;
   gap: 2rem;
   justify-content: center;
+
+  background: #242424;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.divider {
+  height: 3rem;
+  border-right: 1px solid #333;
 }
 
 .synth-panels {
