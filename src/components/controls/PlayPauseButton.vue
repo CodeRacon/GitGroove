@@ -70,7 +70,6 @@ const handleStop = () => {
 
 <style scoped>
 .play-pause-button {
-  background: #42b883;
   border: none;
   border-radius: 50%;
   width: 48px;
@@ -80,15 +79,23 @@ const handleStop = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(145deg, #2d692f, #3b893e);
+  box-shadow:
+    3px 3px 5px #1a1a1a,
+    -1px -1px 1px #55b758;
+  transition: all 0.1s ease-in;
 }
 
-.play-pause-button:hover {
-  transform: scale(1.05);
-  background: #3aa876;
+.play-button:active,
+.play-pause-button.playing {
+  background: linear-gradient(145deg, #3a863c, #47a34a);
+
+  box-shadow:
+    inset 0.5px 0.5px 3px #1a1a1a,
+    inset -1px -1px 1px #55b758;
 }
 
 .stop-button {
-  background: #a83e3a;
   border: none;
   border-radius: 50%;
   width: 48px;
@@ -98,15 +105,19 @@ const handleStop = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(145deg, #88322f, #a83e3a);
+  box-shadow:
+    3px 3px 5px #1a1a1a,
+    -1px -1px 1px #d75c58;
+  transition: all 0.1s ease-in;
 }
 
-.stop-button:hover {
-  transform: scale(1.05);
-  background: #903633;
-}
+.stop-button:active {
+  background: linear-gradient(145deg, #aa3f3b, #c9403b);
 
-.play-pause-button.playing {
-  background: #3aa876;
+  box-shadow:
+    inset 0.5px 0.5px 3px #1a1a1a,
+    inset -1px -1px 1px #d75c58;
 }
 
 .button-content {
