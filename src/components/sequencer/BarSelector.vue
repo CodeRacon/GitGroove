@@ -50,7 +50,11 @@ const updateBars = (bars: number) => {
 
 <template>
   <div class="bar-selector">
-    <h3>Quick-Select Bars 🎵</h3>
+    <div class="heading">
+      <h2>Bar-Selector</h2>
+      <span>1. Define the loop-length via buttons below.</span> <br />
+      <span>2. Grab & move the selector to desired position.</span>
+    </div>
     <div class="bar-buttons">
       <button
         v-for="bars in barOptions"
@@ -70,6 +74,21 @@ const updateBars = (bars: number) => {
   width: 100%;
 }
 
+.heading {
+  margin-bottom: 1rem;
+}
+
+.heading h3 {
+  margin-bottom: 0.5rem;
+}
+
+.heading span {
+  font-weight: 400;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: #cad9cb;
+}
+
 .bar-buttons {
   display: flex;
   justify-content: space-between;
@@ -82,7 +101,7 @@ const updateBars = (bars: number) => {
 button {
   width: 3.25rem;
   padding: 0.5rem 1rem;
-  border: 2px solid #42b883;
+  border: 2px solid #4caf50;
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
@@ -91,14 +110,14 @@ button {
 }
 
 button:hover {
-  background: #42b88360;
+  background: #4caf4f72;
 }
 
 button:active {
-  background: #42b883;
+  background: #4caf50;
 }
 
 button.active {
-  background: #42b883;
+  background: #4caf50;
 }
 </style>

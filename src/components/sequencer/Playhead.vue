@@ -76,7 +76,8 @@ const playheadPosition = computed(() => {
   <div class="playhead-container">
     <div class="playhead" :class="{ 'no-transition': isLooping }" :style="playheadPosition">
       <div class="playhead-line"></div>
-      <div class="playhead-marker"></div>
+      <div class="playhead-marker-top"></div>
+      <div class="playhead-marker-bottom"></div>
     </div>
   </div>
 </template>
@@ -105,18 +106,29 @@ const playheadPosition = computed(() => {
   position: absolute;
   width: 2px;
   height: 100%;
-  background: #42b883;
+  background: #cad9cb;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.playhead-marker {
+.playhead-marker-top {
   position: absolute;
   width: 8px;
   height: 8px;
-  background: #42b883;
+  background: #cad9cb;
   border-radius: 50%;
   top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.playhead-marker-bottom {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #cad9cb;
+  border-radius: 50%;
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
 }

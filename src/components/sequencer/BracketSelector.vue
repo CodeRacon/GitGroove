@@ -193,7 +193,7 @@ const bracketPosition = computed(() => ({
 .handle {
   width: 0.875rem;
   min-width: 14px;
-  background: #42b883;
+  background: #4caf50;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,12 +202,12 @@ const bracketPosition = computed(() => ({
 .handle-grip {
   width: 2px;
   height: 12px;
-  background: white;
+  background: #cad9cb;
 }
 
 .bracket-body {
-  border-top: 2px solid #42b883;
-  border-bottom: 2px solid #42b883;
+  border-top: 2px solid #4caf50;
+  border-bottom: 2px solid #4caf50;
   cursor: grab;
 }
 
@@ -221,6 +221,6 @@ const bracketPosition = computed(() => ({
 }
 
 .bar-marker {
-  background-color: #42b88380;
+  background-color: #4caf5080;
 }
 </style>
