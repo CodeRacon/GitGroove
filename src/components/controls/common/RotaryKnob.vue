@@ -7,10 +7,6 @@ export default {
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-defineOptions({
-  name: 'RotaryKnob',
-})
-
 interface Props {
   modelValue: number
   min?: number

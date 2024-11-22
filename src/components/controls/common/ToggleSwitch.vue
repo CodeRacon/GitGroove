@@ -5,10 +5,6 @@ export default {
 </script>
 
 <script setup lang="ts">
-defineOptions({
-  name: 'ToggleSwitch',
-})
-
 interface Props {
   modelValue: boolean
   label?: string
