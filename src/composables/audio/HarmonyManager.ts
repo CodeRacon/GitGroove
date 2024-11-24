@@ -9,7 +9,7 @@ export class HarmonyManager {
   /**
    * The current beats per minute (BPM) of the audio playback.
    */
-  private _bpm = ref(120)
+  private _bpm = ref(90)
 
   /**
    * An array that keeps track of the history of root notes used in the progression.
