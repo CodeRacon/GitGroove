@@ -1,74 +1,36 @@
 import { ref, computed, watch, type Ref } from 'vue'
-import { useOrchestrator } from './audio/useOrchestrator'
-import * as Tone from 'tone'
 
-export function useSequencer(bars: Ref<number>) {
-  /**
-   * Reactive state and computed properties related to the sequencer functionality.
-   *
-   * - `isPlaying`: Indicates whether the sequencer is currently playing.
-   * - `currentBar`: The current bar position in the sequence.
-   * - `startPosition`: The starting bar position of the sequence.
-   * - `bpm`: The beats per minute of the sequence.
-   * - `progress`: The progress of the current bar, from 0 to 0.999.
-   * - `isLooping`: Indicates whether the sequence is looping.
-   * - `isTriggered`: Indicates whether the sequence has been triggered.
-   * - `msPerBar`: The duration of each bar in milliseconds, computed from the BPM.
-   */
-  const orchestrator = useOrchestrator()
+/**
+ * Defines the events that the `useSequencer` composable can emit.
+ *
+ * - `onTick`: Emitted on each animation frame, providing the current bar index and progress within the bar (0-1).
+ * - `onBarChange`: Emitted when the current bar changes.
+ * - `onLoopComplete`: Emitted when the sequencer has completed a full loop.
+ */
+interface SequencerEvents {
+  onTick: (currentBar: number, progress: number) => void
+  onBarChange: (bar: number) => void
+  onLoopComplete: () => void
+}
+
+export function useSequencer(bars: Ref<number>, events: SequencerEvents) {
   const isPlaying = ref(false)
   const currentBar = ref(0)
   const startPosition = ref(0)
-  const bpm = ref(120)
+  const bpm = ref(90)
   const progress = ref(0)
   const isLooping = ref(false)
-  const isTriggered = ref(false)
   const msPerBar = computed(() => (60 / bpm.value) * 1000)
 
-  /**
-   * `animationFrame`: The ID of the current animation frame request.
-   * `lastTimestamp`: The timestamp of the last animation frame.
-   */
   let animationFrame: number
   let lastTimestamp: number
 
   /**
-   * Handles the patterns for each day in the sequence.
+   * Updates the current bar position based on the elapsed time since the last update.
+   * If the next bar is beyond the end of the sequence, it resets the current bar to the start position and emits the `onLoopComplete` event.
+   * Otherwise, it increments the current bar and resets the progress.
    *
-   * This function is called for each day in the current bar of the sequence. It retrieves the level associated with the day, and then uses the orchestrator to play the corresponding bass, chords, and arpeggio patterns.
-   *
-   * @param days - A NodeList of the day elements in the current bar.
-   * @param now - The current timestamp, used to determine the day of the week.
-   */
-  const handleDayPatterns = (days: NodeListOf<Element>, now: number) => {
-    Array.from(days).forEach((day: Element, index: number) => {
-      const level = parseInt(
-        Array.from(day.classList)
-          .find((c) => c.startsWith('level-'))
-          ?.split('-')[1] || '0',
-      )
-
-      if (level > 0) {
-        const harmony = orchestrator.updateHarmony(level, new Date().getDay())
-        if (harmony && harmony.chord && harmony.chord.length > 0) {
-          setTimeout(() => {
-            orchestrator.playPattern('bass', level, [harmony.bass])
-            orchestrator.playPattern('chords', level, harmony.chord)
-            if (level > 2) {
-              orchestrator.playPattern('arpeggio', level, harmony.extensions)
-            }
-          }, index * 50)
-        }
-      }
-    })
-  }
-
-  /**
-   * Updates the current bar position in the sequence.
-   *
-   * This function is called after each bar is played. It checks if the current bar is the last bar in the sequence, and if so, resets the current bar to the start position and sets the `isLooping` flag to true. Otherwise, it increments the current bar and sets the `isLooping` flag to false.
-   *
-   * @param timestamp - The current timestamp, used to update the `lastTimestamp` value.
+   * @param timestamp - The current timestamp in milliseconds.
    */
   const updateBarPosition = (timestamp: number) => {
     const nextBar = currentBar.value + 1
@@ -77,6 +39,7 @@ export function useSequencer(bars: Ref<number>) {
       currentBar.value = startPosition.value
       progress.value = 0
       lastTimestamp = timestamp
+      events.onLoopComplete()
     } else {
       isLooping.value = false
       currentBar.value = nextBar
@@ -86,11 +49,16 @@ export function useSequencer(bars: Ref<number>) {
   }
 
   /**
-   * The `tick` function is responsible for updating the progress of the sequencer and triggering the playback of the current bar's patterns.
+   * The `tick` function is responsible for updating the current bar position and progress within the bar during the sequencer's playback.
+   * It is called on each animation frame and performs the following tasks:
+   * - Calculates the elapsed time since the last update.
+   * - Updates the `progress` value based on the elapsed time.
+   * - Emits the `onTick` event with the current bar index and progress.
+   * - If the elapsed time is greater than or equal to the duration of a bar, it calls the `updateBarPosition` function to advance to the next bar.
+   * - If the sequencer is playing, it schedules the next animation frame to call this `tick` function again.
+   * - If an error occurs, it logs the error and calls the `stop` function to stop the sequencer.
    *
-   * It is called in a requestAnimationFrame loop when the sequencer is playing. The function calculates the elapsed time since the last tick, updates the progress value, and checks if a full bar has elapsed. If so, it triggers the playback of the patterns for the current bar and updates the current bar position.
-   *
-   * @param timestamp - The current timestamp, used to calculate the elapsed time since the last tick.
+   * @param timestamp - The current timestamp in milliseconds.
    */
   const tick = (timestamp: number) => {
     if (!lastTimestamp) lastTimestamp = timestamp
@@ -99,14 +67,11 @@ export function useSequencer(bars: Ref<number>) {
       const elapsed = timestamp - lastTimestamp
       progress.value = Math.min(elapsed / msPerBar.value, 0.999)
 
-      if (elapsed >= msPerBar.value) {
-        isTriggered.value = true
-        const currentWeek = currentBar.value
-        const days = document.querySelectorAll(`.week:nth-child(${currentWeek + 1}) .day`)
+      events.onTick(currentBar.value, progress.value)
 
-        handleDayPatterns(days, Tone.now())
-        setTimeout(() => (isTriggered.value = false), 100)
+      if (elapsed >= msPerBar.value) {
         updateBarPosition(timestamp)
+        events.onBarChange(currentBar.value)
       }
 
       if (isPlaying.value) {
@@ -120,22 +85,36 @@ export function useSequencer(bars: Ref<number>) {
 
   /**
    * Starts the sequencer playback.
-   *
-   * This function sets the `isPlaying` flag to `true`, resets the `progress` value to `0`, sets the `lastTimestamp` to the current time, sets the `currentBar` to the `startPosition`, sets `isLooping` to `false`, and starts the animation frame loop by calling `requestAnimationFrame` with the `tick` function.
+   * - Sets the `isPlaying` flag to `true`.
+   * - Resets the `progress` value to `0`.
+   * - Sets the `lastTimestamp` to the current time using `performance.now()`.
+   * - Sets the `isLooping` flag to `false`.
+   * - Schedules the first animation frame to call the `tick` function.
    */
   const play = () => {
     isPlaying.value = true
     progress.value = 0
     lastTimestamp = performance.now()
-    currentBar.value = startPosition.value
     isLooping.value = false
     animationFrame = requestAnimationFrame(tick)
   }
 
   /**
+   * Resumes the sequencer playback.
+   * - Sets the `isPlaying` flag to `true`.
+   * - Calculates the `lastTimestamp` based on the current progress value to continue playback from the current position.
+   * - Schedules the next animation frame to call the `tick` function.
+   */
+  const resume = () => {
+    isPlaying.value = true
+    lastTimestamp = performance.now() - progress.value * msPerBar.value
+    animationFrame = requestAnimationFrame(tick)
+  }
+
+  /**
    * Pauses the sequencer playback.
-   *
-   * This function sets the `isPlaying` flag to `false` and cancels the current animation frame loop by calling `cancelAnimationFrame` with the `animationFrame` value.
+   * - Sets the `isPlaying` flag to `false`.
+   * - Cancels the current animation frame.
    */
   const pause = () => {
     isPlaying.value = false
@@ -144,8 +123,10 @@ export function useSequencer(bars: Ref<number>) {
 
   /**
    * Stops the sequencer playback.
-   *
-   * This function pauses the sequencer, resets the progress to 0, sets the current bar to the start position, and sets the looping flag to false.
+   * - Pauses the playback by calling the `pause` function.
+   * - Resets the `progress` value to `0`.
+   * - Sets the `currentBar` value to the `startPosition` value.
+   * - Sets the `isLooping` flag to `false`.
    */
   const stop = () => {
     pause()
@@ -155,11 +136,9 @@ export function useSequencer(bars: Ref<number>) {
   }
 
   /**
-   * Sets the beats per minute (BPM) of the sequencer.
-   *
-   * This function takes a `newBPM` parameter of type `number` and updates the `bpm` value to be within the valid range of 30 to 300 BPM.
-   *
-   * @param newBPM - The new BPM value to set for the sequencer.
+   * Sets the BPM (beats per minute) value for the sequencer.
+   * The BPM value is clamped between 30 and 300 to ensure a valid range.
+   * @param newBPM - The new BPM value to set.
    */
   const setBPM = (newBPM: number) => {
     bpm.value = Math.max(30, Math.min(300, newBPM))
@@ -167,9 +146,10 @@ export function useSequencer(bars: Ref<number>) {
 
   /**
    * Sets the start position for the sequencer playback.
-   *
-   * This function updates the `startPosition` and `currentBar` values to the provided `position`, resets the `progress` value to 0, sets the `lastTimestamp` to 0, and sets the `isLooping` flag to false.
-   *
+   * - Updates the `startPosition` and `currentBar` values to the provided `position`.
+   * - Resets the `progress` value to `0`.
+   * - Resets the `lastTimestamp` to `0`.
+   * - Sets the `isLooping` flag to `false`.
    * @param position - The new start position for the sequencer playback.
    */
   const setStartPosition = (position: number) => {
@@ -181,32 +161,12 @@ export function useSequencer(bars: Ref<number>) {
   }
 
   /**
-   * Stops the sequencer playback when the `bars` value changes.
-   *
-   * This `watch` callback is triggered whenever the `bars` value changes. It calls the `stop()` function to pause the sequencer playback and reset the progress.
+   * Watches the `bars` reactive property and stops the sequencer playback when the `bars` value changes.
    */
   watch(bars, () => {
     stop()
   })
 
-  /**
-   * Provides a set of functions and state related to a sequencer component.
-   *
-   * The `useSequencer` composable returns an object with various properties and methods for controlling the playback and configuration of a sequencer.
-   *
-   * @returns An object with the following properties and methods:
-   * - `isPlaying`: A reactive ref indicating whether the sequencer is currently playing.
-   * - `currentBar`: A reactive ref representing the current bar position in the sequencer.
-   * - `progress`: A reactive ref representing the progress of the current bar (0-1).
-   * - `bpm`: A reactive ref representing the beats per minute (BPM) of the sequencer.
-   * - `isLooping`: A reactive ref indicating whether the sequencer is set to loop.
-   * - `play()`: A function to start the sequencer playback.
-   * - `pause()`: A function to pause the sequencer playback.
-   * - `stop()`: A function to stop the sequencer playback and reset the progress.
-   * - `setBPM(newBPM: number)`: A function to set the BPM of the sequencer.
-   * - `setStartPosition(position: number)`: A function to set the start position for the sequencer playback.
-   * - `isTriggered`: A function to check if a specific bar is currently being triggered.
-   */
   return {
     isPlaying,
     currentBar,
@@ -214,10 +174,10 @@ export function useSequencer(bars: Ref<number>) {
     bpm,
     isLooping,
     play,
+    resume,
     pause,
     stop,
     setBPM,
     setStartPosition,
-    isTriggered,
   }
 }
