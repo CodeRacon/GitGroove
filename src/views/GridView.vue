@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useGitHubStore } from '../stores/github.store'
 import { useSequencer } from '../composables/useSequencer'
 import { useOrchestrator } from '../composables/audio/useOrchestrator'
-
 import BarSelector from '../components/sequencer/BarSelector.vue'
 import BracketSelector from '../components/sequencer/BracketSelector.vue'
 import PlayPauseButton from '../components/controls/PlayPauseButton.vue'
@@ -13,36 +12,57 @@ import BassSynthPanel from '../components/controls/synth/BassSynthPanel.vue'
 import PadSynthPanel from '../components/controls/synth/PadSynthPanel.vue'
 import LeadSynthPanel from '../components/controls/synth/LeadSynthPanel.vue'
 import * as Tone from 'tone'
+import { onBeforeRouteLeave } from 'vue-router'
 
-/**
- * Provides access to the GitHub store, which is used to fetch user contributions data.
- */
 const githubStore = useGitHubStore()
 const username = ref('')
-
-/**
- * Reactive references for managing the grid view:
- * - `selectedBars`: the number of bars currently selected
- * - `startBar`: the index of the first bar currently displayed
- * - `gridWidth`: the current width of the grid element
- * - `gridRef`: a ref to the grid element itself
- */
 const selectedBars = ref(8)
 const startBar = ref(0)
 const gridWidth = ref(0)
 const gridRef = ref<HTMLElement | null>(null)
 
 /**
- * Initializes the sequencer and orchestrator instances used in the GridView component.
- * - `sequencer`: a reactive instance of the useSequencer composable, which manages the sequencing and playback of the grid view.
- * - `orchestrator`: a reactive instance of the useOrchestrator composable, which manages the audio synthesis and harmony generation for the grid view.
+ * Initializes the sequencer with the specified number of bars and event handlers for handling sequencer ticks, bar changes, and loop completion.
+ * The sequencer is responsible for driving the audio playback and updating the harmony based on the user's GitHub contributions.
+ * @param selectedBars - The number of bars to include in the sequencer.
+ * @param {object} options - The event handlers for the sequencer.
+ * @param {function} options.onTick - Called on each tick of the sequencer, passing the current bar and progress.
+ * @param {function} options.onBarChange - Called when the sequencer moves to a new bar, passing the new bar index.
+ * @param {function} options.onLoopComplete - Called when the sequencer completes a full loop.
+ * @returns {object} The initialized sequencer.
  */
-const sequencer = useSequencer(selectedBars)
+const sequencer = useSequencer(selectedBars, {
+  onTick: (currentBar, progress) => {
+    orchestrator.handleSequencerTick(currentBar, progress)
+  },
+  onBarChange: (bar) => {
+    if (githubStore.contributions) {
+      const currentWeek = githubStore.contributions.weeks[bar]
+      orchestrator.updateHarmony(currentWeek.days[0].level, 0)
+    }
+  },
+  onLoopComplete: () => {
+    orchestrator.handleLoopComplete()
+  },
+})
+
+/**
+ * Initializes the orchestrator, which is responsible for managing the audio playback and harmony updates based on the user's GitHub contributions.
+ */
 const orchestrator = useOrchestrator()
 
 /**
- * Updates the width of the grid element to match the current width of the container.
- * This is necessary to ensure the grid is sized correctly within its parent container.
+ * Stops the playback of the sequencer and orchestrator when the user navigates away from the current route.
+ * This ensures that the audio playback is properly stopped when the user leaves the current view.
+ */
+onBeforeRouteLeave(() => {
+  orchestrator.stopPlayback()
+  sequencer.stop()
+})
+
+/**
+ * Updates the grid width based on the width of the grid element.
+ * This ensures the grid is sized correctly when the component is first rendered.
  */
 const updateGridWidth = () => {
   if (gridRef.value) {
@@ -51,100 +71,106 @@ const updateGridWidth = () => {
 }
 
 /**
- * Updates the width of the grid element to match the current width of the container.
- * This is necessary to ensure the grid is sized correctly within its parent container.
+ * Updates the grid width when the component is mounted.
+ * This ensures the grid is sized correctly when the component is first rendered.
  */
 onMounted(() => {
   updateGridWidth()
 })
 
 /**
- * Fetches the user's GitHub contributions data and updates the grid width after the data is loaded.
- * This function is typically called when the username is changed or when the component is first mounted.
+ * Fetches the user's GitHub contributions and updates the grid width and orchestrator.
+ * This function is called when the user's GitHub username is provided.
  */
 const loadContributions = async () => {
   if (username.value) {
+    orchestrator.stopPlayback()
+    sequencer.stop()
     await githubStore.fetchContributions(username.value)
     nextTick(() => {
       updateGridWidth()
+      orchestrator.setContributions(githubStore.contributions)
     })
   }
 }
 
 /**
- * Updates the number of bars displayed in the grid view and adjusts the starting bar index accordingly.
- *
- * @param bars - The new number of bars to display in the grid.
+ * Updates the number of bars to display and the start position for the sequencer and orchestrator, and stops their playback.
+ * @param bars - The new number of bars to display.
  */
 const updateBars = (bars: number) => {
   selectedBars.value = bars
   const maxStart = Math.max(0, 52 - bars)
   startBar.value = Math.min(startBar.value, maxStart)
   sequencer.setStartPosition(startBar.value)
+  orchestrator.stopPlayback()
   sequencer.stop()
 }
 
 /**
- * Updates the starting bar index and the number of bars displayed in the grid view, and stops the sequencer.
- *
- * @param start - The new starting bar index.
- * @param bars - The new number of bars to display in the grid.
+ * Updates the start position and number of bars for the sequencer and orchestrator, and stops their playback.
+ * @param start - The new start position for the sequencer and orchestrator.
+ * @param bars - The new number of bars to display.
  */
 const handleRangeUpdate = ({ start, bars }: { start: number; bars: number }) => {
   startBar.value = start
-  sequencer.stop()
+  orchestrator.setStartPosition(start)
   sequencer.setStartPosition(start)
+  orchestrator.stopPlayback()
+  sequencer.stop()
 }
 
 /**
- * Handles the playback of the sequencer and updates the harmony based on the current week's contribution data.
- *
- * @param isPlaying - A boolean indicating whether the sequencer should start or stop playing.
- * @returns A Promise that resolves when the sequencer has started or stopped.
+ * Handles the playback of the sequencer and orchestrator.
+ * @param isPlaying - A boolean indicating whether playback should start or pause.
+ * @returns {Promise<void>} - A promise that resolves when the playback operation is complete.
  */
 const handlePlayback = async (isPlaying: boolean) => {
+  console.group('🎮 Playback Event')
+  console.log('Action:', isPlaying ? 'Play' : 'Pause')
+  console.log('Sequencer State:', {
+    isPlaying: sequencer.isPlaying.value,
+    progress: sequencer.progress.value,
+    currentBar: sequencer.currentBar.value,
+  })
+
   if (isPlaying) {
     await Tone.start()
+    console.log('Tone.js Started:', Tone.getContext().state)
 
-    sequencer.play()
-    if (githubStore.contributions) {
-      const currentWeek = githubStore.contributions.weeks[startBar.value]
-      const avgLevel = currentWeek.days.reduce((sum, day) => sum + day.level, 0) / 7
-      orchestrator.updateHarmony(avgLevel, new Date().getDay())
+    if (sequencer.isPlaying.value) {
+      orchestrator.resumePlayback()
+      sequencer.resume()
+    } else {
+      const startPosition =
+        sequencer.progress.value > 0 ? sequencer.currentBar.value : startBar.value
+      orchestrator.startPlayback(startPosition)
+      sequencer.play()
     }
   } else {
+    orchestrator.pausePlayback()
     sequencer.pause()
   }
+  console.groupEnd()
 }
 
 /**
- * Updates the tempo (beats per minute) of the sequencer.
- *
- * @param newBPM - The new tempo in beats per minute.
+ * Stops the playback of the sequencer and orchestrator, and sets the start position of the sequencer to the current start bar value.
+ */
+const handleStop = () => {
+  sequencer.stop()
+  orchestrator.stopPlayback()
+  sequencer.setStartPosition(startBar.value)
+}
+
+/**
+ * Updates the BPM (beats per minute) of the sequencer and orchestrator.
+ * @param newBPM - The new BPM value to set.
  */
 const handleBPMChange = (newBPM: number) => {
   sequencer.setBPM(newBPM)
+  orchestrator.updateBPM(newBPM)
 }
-
-/**
- * Watches the current bar index of the sequencer and updates the harmony and playback patterns based on the contribution data for the current week and day.
- *
- * This function is called whenever the `sequencer.currentBar` value changes, which happens during playback. It retrieves the current week and day from the `githubStore.contributions` data, and then updates the harmony and plays the corresponding bass, chords, and arpeggio patterns using the `orchestrator` module.
- *
- * If the sequencer is not playing or the contribution data is not available, the function will return without making any updates.
- */
-watch(sequencer.currentBar, (weekIndex) => {
-  if (!githubStore.contributions || !sequencer.isPlaying.value) return
-  const week = githubStore.contributions.weeks[weekIndex]
-  const dayIndex = Math.floor(sequencer.progress.value * 7)
-  const day = week.days[dayIndex]
-  const harmony = orchestrator.updateHarmony(day.level, dayIndex)
-  orchestrator.playPattern('bass', day.level, [harmony.bass])
-  orchestrator.playPattern('chords', day.level, harmony.chord)
-  if (day.level > 2) {
-    orchestrator.playPattern('arpeggio', day.level, harmony.extensions)
-  }
-})
 </script>
 
 <template>
@@ -197,8 +223,7 @@ watch(sequencer.currentBar, (weekIndex) => {
           :class="[
             `level-${day.level}`,
             {
-              triggered:
-                sequencer.isTriggered && weekIndex === sequencer.currentBar.value && day.level >= 1,
+              triggered: orchestrator.isCurrentDay(weekIndex, dayIndex) && day.level >= 1,
             },
           ]"
         ></div>
@@ -207,14 +232,16 @@ watch(sequencer.currentBar, (weekIndex) => {
 
     <div v-if="githubStore.contributions" class="playback-controls-container">
       <PlayPauseButton
+        :is-playing="sequencer.isPlaying.value"
         @play="handlePlayback(true)"
         @pause="handlePlayback(false)"
-        @stop="sequencer.stop()"
+        @stop="handleStop"
       />
-      <div class="divider"></div>
 
+      <div class="divider"></div>
       <BPMControl :bpm="sequencer.bpm.value" @update:bpm="handleBPMChange" />
     </div>
+
     <div v-if="githubStore.contributions" class="synth-panels">
       <BassSynthPanel />
       <PadSynthPanel />
