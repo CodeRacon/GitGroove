@@ -10,12 +10,24 @@ interface Props {
   label?: string
 }
 
+/**
+ * Defines the props for the ToggleSwitch component.
+ *
+ * @property {boolean} modelValue - The current value of the toggle switch.
+ * @property {string} [label] - An optional label for the toggle switch.
+ */
 const props = withDefaults(defineProps<Props>(), {
   label: '',
 })
 
+/**
+ * Emits an event to update the `modelValue` prop.
+ */
 const emit = defineEmits(['update:modelValue'])
 
+/**
+ * Toggles the value of the `modelValue` prop and emits an event to update it.
+ */
 const toggle = () => {
   emit('update:modelValue', !props.modelValue)
 }
