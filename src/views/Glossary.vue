@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
+/**
+ * Represents a single entry in the application's glossary.
+ * Each entry has a term and a corresponding description.
+ */
 interface GlossaryEntry {
   term: string
   description: string
 }
 
+/**
+ * Reactive state that keeps track of the currently open glossary entries.
+ * This state is used to persist the open/closed state of the glossary entries across page loads.
+ */
 const openEntries = ref<Set<string>>(new Set())
 
+/**
+ * Initializes the `openEntries` state by loading the previously saved open glossary entries from local storage.
+ * This ensures that the open/closed state of the glossary entries is persisted across page loads.
+ */
 onMounted(() => {
   const saved = localStorage.getItem('glossaryOpenEntries')
   if (saved) {
@@ -15,6 +27,14 @@ onMounted(() => {
   }
 })
 
+/**
+ * Toggles the open state of a glossary entry term in the application.
+ * If the term is already open, it will be closed. If the term is closed, it will be opened.
+ * The open state of the terms is persisted in the browser's local storage.
+ *
+ * @param term - The term to toggle the open state for.
+ * @param isOpen - The current open state of the term.
+ */
 const handleToggle = (term: string, isOpen: boolean) => {
   if (isOpen) {
     openEntries.value.add(term)
@@ -24,11 +44,38 @@ const handleToggle = (term: string, isOpen: boolean) => {
   localStorage.setItem('glossaryOpenEntries', JSON.stringify([...openEntries.value]))
 }
 
+/**
+ * Toggles the open state of a glossary entry term in the application.
+ * This function is called when the user clicks on a glossary term to expand or collapse its details.
+ *
+ * @param event - The click event that triggered the toggle.
+ * @param term - The term whose open state should be toggled.
+ */
 const handleDetailsToggle = (event: Event, term: string) => {
   const details = event.target as HTMLDetailsElement
   handleToggle(term, details.open)
 }
 
+/**
+ * Toggles the open state of a glossary entry term in the application.
+ * If the term is already open, it will be closed. If the term is closed, it will be opened.
+ * The open state of the terms is persisted in the browser's local storage.
+ *
+ * @param term - The term to toggle the open state for.
+ */
+const handleTermClick = (term: string) => {
+  if (openEntries.value.has(term)) {
+    openEntries.value.delete(term)
+  } else {
+    openEntries.value.add(term)
+  }
+  localStorage.setItem('glossaryOpenEntries', JSON.stringify([...openEntries.value]))
+}
+
+/** This is a list of glossary entries for the GitGroove application. 
+Each entry contains a term and a description, providing definitions and explanations of 
+various musical concepts and features used in the application. The entries are sorted alphabetically by term.
+*/
 const glossaryEntries: GlossaryEntry[] = [
   {
     term: 'Arpeggio',
@@ -145,6 +192,11 @@ const glossaryEntries: GlossaryEntry[] = [
       'The level at which a note holds after the decay phase and before the release phase begins.',
   },
   {
+    term: 'Sound-sculpture',
+    description:
+      'An artistic approach that transforms data into audible patterns and textures. In GitGroove, GitHub contribution data is sculpted into musical elements, where commit patterns become rhythms, harmonies, and melodies, creating a unique sonic representation of coding activity.',
+  },
+  {
     term: 'Synthesizer/Synth',
     description:
       'An electronic instrument that generates and modifies sound through various parameters and modules.',
@@ -161,18 +213,16 @@ const glossaryEntries: GlossaryEntry[] = [
   <div class="glossary">
     <h2>Sound & Music Glossary</h2>
     <div class="glossary-grid">
-      <details
-        v-for="entry in glossaryEntries"
-        :key="entry.term"
-        :open="openEntries.has(entry.term)"
-        class="glossary-item"
-        @toggle="handleDetailsToggle($event, entry.term)"
-      >
-        <summary>{{ entry.term }}</summary>
-        <div class="description">
-          {{ entry.description }}
+      <div v-for="entry in glossaryEntries" :key="entry.term" class="glossary-item">
+        <div class="term" @click="handleTermClick(entry.term)">• {{ entry.term }}</div>
+        <div class="wrapper" :class="{ 'is-open': openEntries.has(entry.term) }">
+          <div class="inner">
+            <div class="content">
+              {{ entry.description }}
+            </div>
+          </div>
         </div>
-      </details>
+      </div>
     </div>
   </div>
 </template>
@@ -194,12 +244,11 @@ const glossaryEntries: GlossaryEntry[] = [
 .glossary-item {
   background: #2a2a2a;
   border-radius: 8px;
-  overflow: hidden;
   border: 1px solid #3333338d;
+  overflow: hidden;
 }
 
-summary {
-  /* list-style: none; */
+.term {
   padding: 0.625rem 1rem;
   cursor: pointer;
   color: #4caf50;
@@ -207,11 +256,25 @@ summary {
   user-select: none;
 }
 
-summary:hover {
+.term:hover {
   background: #333;
 }
 
-.description {
+.wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
+}
+
+.wrapper.is-open {
+  grid-template-rows: 1fr;
+}
+
+.inner {
+  overflow: hidden;
+}
+
+.content {
   padding: 1rem;
   color: #cad9cb;
   border-top: 1px solid #3333338d;
