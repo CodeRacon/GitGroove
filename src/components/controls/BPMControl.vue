@@ -12,12 +12,12 @@ import Fader from './common/Fader.vue'
 /**
  * Defines the props for the `BPMControl` component.
  *
- * @prop {number} bpm - The current BPM (beats per minute) value. Defaults to 120.
+ * @prop {number} bpm - The current BPM (beats per minute) value. Defaults to 90.
  */
 const props = defineProps({
   bpm: {
     type: Number,
-    default: 120,
+    default: 90,
   },
 })
 
