@@ -20,6 +20,11 @@ const padParams = computed(() => synthState.value.synthParams.pad)
 
 const isModulation = ref(false)
 
+/**
+ * Computes the envelope parameters based on whether modulation is enabled or not.
+ * If modulation is enabled, it uses the modulation envelope parameters, otherwise it uses the regular envelope parameters.
+ * The envelope parameters include attack, decay, sustain, and release.
+ */
 const envelopeParams = computed(() => ({
   attack: isModulation.value ? padParams.value.modAttack : padParams.value.attack,
   decay: isModulation.value ? padParams.value.modDecay : padParams.value.decay,
@@ -27,6 +32,14 @@ const envelopeParams = computed(() => ({
   release: isModulation.value ? padParams.value.modRelease : padParams.value.release,
 }))
 
+/**
+ * Updates the specified envelope parameter for the pad synth.
+ *
+ * If modulation is enabled, it updates the modulation envelope parameter. Otherwise, it updates the regular envelope parameter.
+ *
+ * @param param - The name of the envelope parameter to update (e.g. 'attack', 'decay', 'sustain', 'release').
+ * @param value - The new value for the envelope parameter.
+ */
 const updateEnvelopeParam = (param: string, value: number) => {
   const capitalizedParam = param.charAt(0).toUpperCase() + param.slice(1)
   const paramName = isModulation.value ? `mod${capitalizedParam}` : param
@@ -39,6 +52,12 @@ const updateReverbMix = (value: number) => updateSynthParam('pad', 'reverbMix', 
 const toggleModulation = (value: boolean) => {
   isModulation.value = value
 }
+
+/**
+ * Toggles the chorus effect for the pad synth.
+ *
+ * @param value - A boolean value indicating whether the chorus effect should be enabled or disabled.
+ */
 const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value)
 </script>
 
@@ -81,7 +100,7 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
         <RotaryKnob
           v-model="padParams.cutoff"
           :min="20"
-          :max="4000"
+          :max="2000"
           :step="10"
           label="Cutoff"
           @update:modelValue="updateCutoff"
@@ -91,7 +110,7 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
           v-model="padParams.reverbMix"
           :min="0"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           label="Reverb"
           @update:modelValue="updateReverbMix"
         />
@@ -100,9 +119,9 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
       <div class="knob-section envelope">
         <RotaryKnob
           v-model="envelopeParams.attack"
-          :min="0.0"
-          :max="4"
-          :step="0.1"
+          :min="0.1"
+          :max="1"
+          :step="0.05"
           :label="isModulation ? 'Mod Attack' : 'Attack'"
           @update:modelValue="(value) => updateEnvelopeParam('attack', value)"
         />
@@ -110,8 +129,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
         <RotaryKnob
           v-model="envelopeParams.decay"
           :min="0.1"
-          :max="4"
-          :step="0.1"
+          :max="1"
+          :step="0.05"
           :label="isModulation ? 'Mod Decay' : 'Decay'"
           @update:modelValue="(value) => updateEnvelopeParam('decay', value)"
         />
@@ -120,7 +139,7 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
           v-model="envelopeParams.sustain"
           :min="0"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           :label="isModulation ? 'Mod Sustain' : 'Sustain'"
           @update:modelValue="(value) => updateEnvelopeParam('sustain', value)"
         />
@@ -128,8 +147,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
         <RotaryKnob
           v-model="envelopeParams.release"
           :min="0.1"
-          :max="8"
-          :step="0.1"
+          :max="5"
+          :step="0.05"
           :label="isModulation ? 'Mod Release' : 'Release'"
           @update:modelValue="(value) => updateEnvelopeParam('release', value)"
         />

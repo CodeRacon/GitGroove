@@ -11,7 +11,6 @@ import Fader from '../common/Fader.vue'
 import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
 import { useSynthControls } from '../../../composables/audio/useSynthControls'
 
-// BassSynthPanel.vue
 const { updateSynthParam, synthState } = useOrchestrator()
 const { toggleSolo, toggleMute } = useSynthControls()
 
@@ -73,8 +72,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
         <RotaryKnob
           v-model="bassParams.resonance"
           :min="0.1"
-          :max="10"
-          :step="0.1"
+          :max="5"
+          :step="0.05"
           label="Resonance"
           @update:modelValue="updateResonance"
         />
@@ -83,27 +82,27 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
       <div class="knob-section envelope">
         <RotaryKnob
           v-model="bassParams.attack"
-          :min="0.0"
+          :min="0.1"
           :max="1"
-          :step="0.1"
+          :step="0.05"
           label="Attack"
           @update:modelValue="updateAttack"
         />
 
         <RotaryKnob
           v-model="bassParams.decay"
-          :min="0.01"
+          :min="0.1"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           label="Decay"
           @update:modelValue="updateDecay"
         />
 
         <RotaryKnob
           v-model="bassParams.sustain"
-          :min="0"
+          :min="0.1"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           label="Sustain"
           @update:modelValue="updateSustain"
         />
@@ -111,8 +110,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
         <RotaryKnob
           v-model="bassParams.release"
           :min="0.01"
-          :max="2"
-          :step="0.01"
+          :max="5"
+          :step="0.05"
           label="Release"
           @update:modelValue="updateRelease"
         />

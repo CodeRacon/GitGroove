@@ -67,7 +67,7 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
         <RotaryKnob
           v-model="leadParams.cutoff"
           :min="20"
-          :max="4000"
+          :max="2000"
           :step="10"
           label="Cutoff"
           @update:modelValue="updateCutoff"
@@ -75,9 +75,9 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 
         <RotaryKnob
           v-model="leadParams.delayTime"
-          :min="0"
+          :min="0.1"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           label="Delay Time"
           @update:modelValue="updateDelayTime"
         />
@@ -85,8 +85,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
         <RotaryKnob
           v-model="leadParams.delayFeedback"
           :min="0"
-          :max="0.9"
-          :step="0.01"
+          :max="1"
+          :step="0.05"
           label="Feedback"
           @update:modelValue="updateDelayFeedback"
         />
@@ -95,7 +95,7 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
           v-model="leadParams.reverbMix"
           :min="0"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           label="Reverb"
           @update:modelValue="updateReverbMix"
         />
@@ -104,27 +104,27 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
       <div class="knob-section envelope">
         <RotaryKnob
           v-model="leadParams.attack"
-          :min="0.0"
+          :min="0.1"
           :max="1"
-          :step="0.1"
+          :step="0.05"
           label="Attack"
           @update:modelValue="updateAttack"
         />
 
         <RotaryKnob
           v-model="leadParams.decay"
-          :min="0.01"
+          :min="0.1"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           label="Decay"
           @update:modelValue="updateDecay"
         />
 
         <RotaryKnob
           v-model="leadParams.sustain"
-          :min="0"
+          :min="0.1"
           :max="1"
-          :step="0.01"
+          :step="0.05"
           label="Sustain"
           @update:modelValue="updateSustain"
         />
@@ -132,8 +132,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
         <RotaryKnob
           v-model="leadParams.release"
           :min="0.1"
-          :max="2"
-          :step="0.01"
+          :max="5"
+          :step="0.05"
           label="Release"
           @update:modelValue="updateRelease"
         />
