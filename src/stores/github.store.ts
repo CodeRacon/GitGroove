@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 import { githubService } from '../services/github/github.service'
 import type { ContributionResponse } from '@/types/github.types'
 
+/**
+ * Pinia store for managing GitHub data in the GitGroove application.
+ * Provides state and actions for fetching and handling user contributions data from the GitHub API.
+ */
 export const useGitHubStore = defineStore('github', {
   state: () => ({
     contributions: null as ContributionResponse | null,
