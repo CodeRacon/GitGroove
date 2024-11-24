@@ -16,10 +16,10 @@ export class PatternGenerator {
   private rhythmPatterns = {
     bass: {
       level0: [0],
-      level1: [0.8, 0, 0, 0],
-      level2: [0.8, 0, 0, 0.6],
-      level3: [0.8, 0, 0.6, 0],
-      level4: [0.8, 0, 0.7, 0, 0.6, 0, 0, 0],
+      level1: [0.8],
+      level2: [0.85],
+      level3: [0.9],
+      level4: [1.0],
     },
 
     chords: {
@@ -59,7 +59,7 @@ export class PatternGenerator {
   }
 
   /**
-   * Generates a pattern based on the provided type and level.
+   * Generates a pattern based on the provided type and level.f
    *
    * If the type is 'arpeggio' and the level is greater than 1, it uses the corresponding arpeggio pattern function to transform the input notes.
    * If the type is 'bass' or 'chords', it retrieves the rhythm pattern for the given level and returns an object with the pattern and the input notes.
