@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
 import { useGitHubStore } from '../stores/github.store'
 import { useSequencer } from '../composables/useSequencer'
 import { useOrchestrator } from '../composables/audio/useOrchestrator'
@@ -13,6 +15,25 @@ import PadSynthPanel from '../components/controls/synth/PadSynthPanel.vue'
 import LeadSynthPanel from '../components/controls/synth/LeadSynthPanel.vue'
 import * as Tone from 'tone'
 import { onBeforeRouteLeave } from 'vue-router'
+import Glossary from './Glossary.vue'
+import Imprint from './Imprint.vue'
+
+const currentView = ref('grid')
+
+const route = useRoute()
+
+/** Watches the `route.query.view` property and updates the `currentView` reactive
+ * variable with the new view value. If the new view value is `undefined`,
+ * it defaults to `'grid'`. This ensures that the `currentView` variable is
+ * always up-to-date with the current view being displayed.
+ */
+watch(
+  () => route.query.view,
+  (newView) => {
+    currentView.value = newView?.toString() || 'grid'
+  },
+  { immediate: true },
+)
 
 const githubStore = useGitHubStore()
 const username = ref('')
@@ -89,7 +110,9 @@ const loadContributions = async () => {
     await githubStore.fetchContributions(username.value)
     nextTick(() => {
       updateGridWidth()
-      orchestrator.setContributions(githubStore.contributions)
+      if (githubStore.contributions) {
+        orchestrator.setContributions(githubStore.contributions)
+      }
     })
   }
 }
@@ -175,78 +198,83 @@ const handleBPMChange = (newBPM: number) => {
 
 <template>
   <main class="grid-view">
-    <div class="input-section">
-      <input
-        v-model="username"
-        type="text"
-        placeholder="GitHub Username"
-        @keyup.enter="loadContributions"
-      />
-      <button @click="loadContributions">Load Data</button>
-    </div>
-
-    <div v-if="githubStore.contributions" class="sequencer-controls">
-      <BarSelector :bars="selectedBars" @update:bars="updateBars" />
-      <BracketSelector
-        v-if="gridWidth"
-        :total-weeks="52"
-        :selected-bars="selectedBars"
-        :grid-width="gridWidth"
-        @update:range="handleRangeUpdate"
-      />
-    </div>
-
-    <div v-if="githubStore.loading" class="status">Collecting Data...</div>
-    <div v-else-if="githubStore.error" class="status error">{{ githubStore.error }} 😕</div>
-    <div v-if="githubStore.contributions" ref="gridRef" class="contribution-grid">
-      <Playhead
-        v-if="sequencer.isPlaying"
-        :position="sequencer.currentBar.value"
-        :progress="sequencer.progress.value"
-        :start-position="startBar"
-        :total-bars="selectedBars"
-        :is-looping="sequencer.isLooping.value"
-      />
-
-      <div
-        v-for="(week, weekIndex) in githubStore.contributions.weeks"
-        :key="weekIndex"
-        class="week"
-        :class="{
-          inactive: weekIndex < startBar || weekIndex >= startBar + selectedBars,
-        }"
-      >
-        <div
-          v-for="(day, dayIndex) in week.days"
-          :key="dayIndex"
-          class="day"
-          :class="[
-            `level-${day.level}`,
-            {
-              triggered: orchestrator.isCurrentDay(weekIndex, dayIndex) && day.level >= 1,
-            },
-          ]"
-        ></div>
+    <template v-if="currentView === 'grid'">
+      <div class="input-section">
+        <input
+          v-model="username"
+          type="text"
+          placeholder="GitHub Username"
+          @keyup.enter="loadContributions"
+        />
+        <button @click="loadContributions">Load Data</button>
       </div>
-    </div>
 
-    <div v-if="githubStore.contributions" class="playback-controls-container">
-      <PlayPauseButton
-        :is-playing="sequencer.isPlaying.value"
-        @play="handlePlayback(true)"
-        @pause="handlePlayback(false)"
-        @stop="handleStop"
-      />
+      <div v-if="githubStore.contributions" class="sequencer-controls">
+        <BarSelector :bars="selectedBars" @update:bars="updateBars" />
+        <BracketSelector
+          v-if="gridWidth"
+          :total-weeks="52"
+          :selected-bars="selectedBars"
+          :grid-width="gridWidth"
+          @update:range="handleRangeUpdate"
+        />
+      </div>
 
-      <div class="divider"></div>
-      <BPMControl :bpm="sequencer.bpm.value" @update:bpm="handleBPMChange" />
-    </div>
+      <div v-if="githubStore.loading" class="status">Collecting Data...</div>
+      <div v-else-if="githubStore.error" class="status error">{{ githubStore.error }} 😕</div>
+      <div v-if="githubStore.contributions" ref="gridRef" class="contribution-grid">
+        <Playhead
+          v-if="sequencer.isPlaying"
+          :position="sequencer.currentBar.value"
+          :progress="sequencer.progress.value"
+          :start-position="startBar"
+          :total-bars="selectedBars"
+          :is-looping="sequencer.isLooping.value"
+        />
 
-    <div v-if="githubStore.contributions" class="synth-panels">
-      <BassSynthPanel />
-      <PadSynthPanel />
-      <LeadSynthPanel />
-    </div>
+        <div
+          v-for="(week, weekIndex) in githubStore.contributions.weeks"
+          :key="weekIndex"
+          class="week"
+          :class="{
+            inactive: weekIndex < startBar || weekIndex >= startBar + selectedBars,
+          }"
+        >
+          <div
+            v-for="(day, dayIndex) in week.days"
+            :key="dayIndex"
+            class="day"
+            :class="[
+              `level-${day.level}`,
+              {
+                triggered: orchestrator.isCurrentDay(weekIndex, dayIndex) && day.level >= 1,
+              },
+            ]"
+          ></div>
+        </div>
+      </div>
+
+      <div v-if="githubStore.contributions" class="playback-controls-container">
+        <PlayPauseButton
+          :is-playing="sequencer.isPlaying.value"
+          @play="handlePlayback(true)"
+          @pause="handlePlayback(false)"
+          @stop="handleStop"
+        />
+
+        <div class="divider"></div>
+        <BPMControl :bpm="sequencer.bpm.value" @update:bpm="handleBPMChange" />
+      </div>
+
+      <div v-if="githubStore.contributions" class="synth-panels">
+        <BassSynthPanel />
+        <PadSynthPanel />
+        <LeadSynthPanel />
+      </div>
+    </template>
+
+    <Glossary v-else-if="currentView === 'glossary'" />
+    <Imprint v-else-if="currentView === 'imprint'" />
   </main>
 </template>
 
