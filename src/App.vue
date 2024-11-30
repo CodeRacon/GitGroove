@@ -6,8 +6,14 @@
       <h1>GitGroove</h1>
     </header>
     <nav>
-      <RouterLink to="/">Home</RouterLink> | <RouterLink to="/glossary">Glossary</RouterLink> |
-      <RouterLink to="/imprint">Imprint</RouterLink>
+      <RouterLink to="/" :class="{ active: !$route.query.view }">Home</RouterLink> |
+      <RouterLink to="/?view=glossary" :class="{ active: $route.query.view === 'glossary' }"
+        >Glossary</RouterLink
+      >
+      |
+      <RouterLink to="/?view=imprint" :class="{ active: $route.query.view === 'imprint' }"
+        >Imprint</RouterLink
+      >
     </nav>
 
     <RouterView />
@@ -46,15 +52,36 @@ nav {
 nav a {
   margin: 0 0.5rem;
   text-decoration: none;
-  color: #2c3e50;
+  color: #435f7b;
 }
 
 nav a:hover {
   color: #42b883;
 }
 
-nav a.router-link-active {
+nav a.active {
   color: #42b883;
   font-weight: 700;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0d5d27;
+  border-radius: 2px;
+  border: 2px solid #1a1b1a;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0d5d27 transparent;
 }
 </style>
