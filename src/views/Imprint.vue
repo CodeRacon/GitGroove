@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  name: 'Imprint',
+}
+</script>
+
 <script setup lang="ts"></script>
 
 <template>
@@ -32,8 +38,11 @@
         GitGroove is intended to be a tool and toy for everyone to craft and develop their own
         personal sound-sculpture.
       </p>
-      <p>So without further ado:<span> Go make some noise ...I mean, literally!</span></p>
+      <p>So without further ado:<span> Have fun and make some noise ...literally!</span></p>
+
       <br />
+      <p>Take care!</p>
+      <p>Mike</p>
 
       <hr />
 
@@ -46,6 +55,22 @@
         projects in an entirely new dimension.
       </p>
 
+      <h3>Technical Approach</h3>
+      <p>
+        GitGroove is built with modern web technologies, focusing on performance and reactivity:
+      </p>
+      <ul class="tech-list">
+        <li>Vue 3 with Composition API & TypeScript</li>
+        <li>Tone.js for reliable audio synthesis</li>
+        <li>GitHub API integration for contribution data</li>
+        <li>State management via Pinia</li>
+      </ul>
+      <p>
+        The app features real-time audio processing and dynamic sound generation. Each synth voice
+        (Bass, Pad, Lead) is crafted using Tone.js's powerful synthesis capabilities, while Vue's
+        reactive system ensures smooth updates and lightweight.
+      </p>
+
       <h3>Data Usage Notice</h3>
       <p>
         GitGroove only uses publicly available GitHub contribution data to create its sonic
@@ -54,12 +79,8 @@
 
       <h3>Contact</h3>
       <p>
-        Do you have questions, concerns, praise, criticism, suggestions for improvement or would
-        like to talk about something specific?
-        <br />
-        <br />
-        Feel free to reach out via
-        <a href="mailto:hey@michael-buschmann.dev">hey@michael-buschmann.dev</a> or check one of the
+        In case you have questions, suggestions or want to talk about something specific, feel free
+        to reach out via <a href="mailto:hey@michael-buschmann.dev">Email</a> or check one of the
         links below:
       </p>
       <div class="links">
@@ -101,6 +122,7 @@ p {
 }
 
 a {
+  width: fit-content;
   text-decoration-line: underline;
 }
 
@@ -111,5 +133,9 @@ a:hover {
 span {
   font-weight: bold;
   color: white;
+}
+
+li {
+  color: #cad9cb;
 }
 </style>
