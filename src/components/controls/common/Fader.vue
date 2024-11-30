@@ -1,9 +1,3 @@
-<script lang="ts">
-export default {
-  name: 'Fader',
-}
-</script>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
