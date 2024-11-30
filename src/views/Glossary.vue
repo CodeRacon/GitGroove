@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  name: 'Glossary',
+}
+</script>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
