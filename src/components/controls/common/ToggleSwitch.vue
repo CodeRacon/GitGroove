@@ -1,9 +1,3 @@
-<script lang="ts">
-export default {
-  name: 'ToggleSwitch',
-}
-</script>
-
 <script setup lang="ts">
 interface Props {
   modelValue: boolean
