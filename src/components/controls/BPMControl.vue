@@ -5,8 +5,6 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useOrchestrator } from '../../composables/audio/useOrchestrator'
 import Fader from './common/Fader.vue'
 
 /**
@@ -14,7 +12,7 @@ import Fader from './common/Fader.vue'
  *
  * @prop {number} bpm - The current BPM (beats per minute) value. Defaults to 90.
  */
-const props = defineProps({
+defineProps({
   bpm: {
     type: Number,
     default: 90,

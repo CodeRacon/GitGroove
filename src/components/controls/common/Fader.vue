@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ name: 'VolumeFader' })
 import { ref, computed } from 'vue'
 
 interface Props {

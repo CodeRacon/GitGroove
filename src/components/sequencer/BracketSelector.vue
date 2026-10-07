@@ -18,6 +18,7 @@ const props = defineProps({
   totalWeeks: { type: Number, required: true },
   selectedBars: { type: Number, required: true },
   gridWidth: { type: Number, required: true },
+  start: { type: Number, default: 0 },
 })
 
 /**
@@ -31,6 +32,7 @@ const startBar = ref(0)
 const isDragging = ref(false)
 const dragStartX = ref(0)
 const initialStart = ref(0)
+watch(() => props.start, (value) => { startBar.value = value })
 
 /**
  * Constants defining the width and gap between bars in the sequencer UI.
@@ -75,8 +77,8 @@ const emit = defineEmits(['update:range', 'positionChange'])
 watch(
   () => props.selectedBars,
   () => {
-    const maxStart = props.totalWeeks - props.selectedBars
-    startBar.value = Math.min(startBar.value, maxStart)
+    const maxStart = Math.max(0, props.totalWeeks - props.selectedBars)
+    startBar.value = Math.max(0, Math.min(startBar.value, maxStart))
     emit('update:range', { start: startBar.value, bars: props.selectedBars })
   },
 )
@@ -111,7 +113,7 @@ const startDrag = (e: MouseEvent) => {
     const delta = Math.round((e.clientX - dragStartX.value) / pixelsPerBar.value)
     startBar.value = Math.max(
       0,
-      Math.min(props.totalWeeks - props.selectedBars, initialStart.value + delta),
+      Math.min(Math.max(0, props.totalWeeks - props.selectedBars), initialStart.value + delta),
     )
 
     emit('update:range', { start: startBar.value, bars: props.selectedBars })

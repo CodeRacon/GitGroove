@@ -1,198 +1,77 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, watch } from 'vue'
-import { useRoute } from 'vue-router'
-
-import { useGitHubStore } from '../stores/github.store'
-import { useSequencer } from '../composables/useSequencer'
-import { useOrchestrator } from '../composables/audio/useOrchestrator'
-import BarSelector from '../components/sequencer/BarSelector.vue'
-import BracketSelector from '../components/sequencer/BracketSelector.vue'
-import PlayPauseButton from '../components/controls/PlayPauseButton.vue'
-import Playhead from '../components/sequencer/Playhead.vue'
-import BPMControl from '../components/controls/BPMControl.vue'
-import BassSynthPanel from '../components/controls/synth/BassSynthPanel.vue'
-import PadSynthPanel from '../components/controls/synth/PadSynthPanel.vue'
-import LeadSynthPanel from '../components/controls/synth/LeadSynthPanel.vue'
-import * as Tone from 'tone'
-import { onBeforeRouteLeave } from 'vue-router'
+import { useRoute, onBeforeRouteLeave } from 'vue-router'
+import { useGitHubStore } from '@/stores/github.store'
+import { createScore } from '@/music/score'
+import { useStudio } from '@/audio/studio'
+import BarSelector from '@/components/sequencer/BarSelector.vue'
+import BracketSelector from '@/components/sequencer/BracketSelector.vue'
+import PlayPauseButton from '@/components/controls/PlayPauseButton.vue'
+import Playhead from '@/components/sequencer/Playhead.vue'
+import BPMControl from '@/components/controls/BPMControl.vue'
+import BassSynthPanel from '@/components/controls/synth/BassSynthPanel.vue'
+import PadSynthPanel from '@/components/controls/synth/PadSynthPanel.vue'
+import LeadSynthPanel from '@/components/controls/synth/LeadSynthPanel.vue'
 import Glossary from './Glossary.vue'
 import Imprint from './Imprint.vue'
 
-const currentView = ref('grid')
-
 const route = useRoute()
-
-/** Watches the `route.query.view` property and updates the `currentView` reactive
- * variable with the new view value. If the new view value is `undefined`,
- * it defaults to `'grid'`. This ensures that the `currentView` variable is
- * always up-to-date with the current view being displayed.
- */
-watch(
-  () => route.query.view,
-  (newView) => {
-    currentView.value = newView?.toString() || 'grid'
-  },
-  { immediate: true },
-)
-
+const currentView = ref('grid')
 const githubStore = useGitHubStore()
+const { session } = useStudio()
+const { status, bpm, week: currentWeek, day: currentDay, progress } = session
 const username = ref('')
+const playbackError = ref('')
 const selectedBars = ref(8)
 const startBar = ref(0)
 const gridWidth = ref(0)
 const gridRef = ref<HTMLElement | null>(null)
 
-/**
- * Initializes the sequencer with the specified number of bars and event handlers for handling sequencer ticks, bar changes, and loop completion.
- * The sequencer is responsible for driving the audio playback and updating the harmony based on the user's GitHub contributions.
- * @param selectedBars - The number of bars to include in the sequencer.
- * @param {object} options - The event handlers for the sequencer.
- * @param {function} options.onTick - Called on each tick of the sequencer, passing the current bar and progress.
- * @param {function} options.onBarChange - Called when the sequencer moves to a new bar, passing the new bar index.
- * @param {function} options.onLoopComplete - Called when the sequencer completes a full loop.
- * @returns {object} The initialized sequencer.
- */
-const sequencer = useSequencer(selectedBars, {
-  onTick: (currentBar, progress) => {
-    orchestrator.handleSequencerTick(currentBar, progress)
-  },
-  onBarChange: (bar) => {
-    if (githubStore.contributions) {
-      const currentWeek = githubStore.contributions.weeks[bar]
-      orchestrator.updateHarmony(currentWeek.days[0].level, 0)
-    }
-  },
-  onLoopComplete: () => {
-    orchestrator.handleLoopComplete()
-  },
-})
+watch(() => route.query.view, (view) => {
+  currentView.value = view?.toString() || 'grid'
+  if (currentView.value !== 'grid') session.pause()
+}, { immediate: true })
+onBeforeRouteLeave(() => session.pause())
 
-/**
- * Initializes the orchestrator, which is responsible for managing the audio playback and harmony updates based on the user's GitHub contributions.
- */
-const orchestrator = useOrchestrator()
+const updateGridWidth = () => { gridWidth.value = gridRef.value?.offsetWidth ?? 0 }
+onMounted(updateGridWidth)
 
-/**
- * Stops the playback of the sequencer and orchestrator when the user navigates away from the current route.
- * This ensures that the audio playback is properly stopped when the user leaves the current view.
- */
-onBeforeRouteLeave(() => {
-  orchestrator.stopPlayback()
-  sequencer.stop()
-})
-
-/**
- * Updates the grid width based on the width of the grid element.
- * This ensures the grid is sized correctly when the component is first rendered.
- */
-const updateGridWidth = () => {
-  if (gridRef.value) {
-    gridWidth.value = gridRef.value.offsetWidth
-  }
+function loadScore() {
+  const calendar = githubStore.contributions
+  if (!calendar || calendar.weeks.length === 0) return
+  selectedBars.value = Math.min(selectedBars.value, calendar.weeks.length)
+  startBar.value = Math.min(startBar.value, calendar.weeks.length - selectedBars.value)
+  session.load(createScore(calendar, githubStore.username, startBar.value, selectedBars.value))
 }
 
-/**
- * Updates the grid width when the component is mounted.
- * This ensures the grid is sized correctly when the component is first rendered.
- */
-onMounted(() => {
+async function loadContributions() {
+  if (!username.value.trim()) return
+  session.clear()
+  playbackError.value = ''
+  await githubStore.fetchContributions(username.value)
+  startBar.value = 0
+  loadScore()
+  await nextTick()
   updateGridWidth()
-})
-
-/**
- * Fetches the user's GitHub contributions and updates the grid width and orchestrator.
- * This function is called when the user's GitHub username is provided.
- */
-const loadContributions = async () => {
-  if (username.value) {
-    orchestrator.stopPlayback()
-    sequencer.stop()
-    await githubStore.fetchContributions(username.value)
-    nextTick(() => {
-      updateGridWidth()
-      if (githubStore.contributions) {
-        orchestrator.setContributions(githubStore.contributions)
-      }
-    })
-  }
 }
 
-/**
- * Updates the number of bars to display and the start position for the sequencer and orchestrator, and stops their playback.
- * @param bars - The new number of bars to display.
- */
-const updateBars = (bars: number) => {
-  selectedBars.value = bars
-  const maxStart = Math.max(0, 52 - bars)
-  startBar.value = Math.min(startBar.value, maxStart)
-  sequencer.setStartPosition(startBar.value)
-  orchestrator.stopPlayback()
-  sequencer.stop()
+function updateBars(bars: number) {
+  if (!githubStore.contributions) return
+  selectedBars.value = Math.max(1, Math.min(bars, githubStore.contributions.weeks.length))
+  loadScore()
 }
 
-/**
- * Updates the start position and number of bars for the sequencer and orchestrator, and stops their playback.
- * @param start - The new start position for the sequencer and orchestrator.
- * @param bars - The new number of bars to display.
- */
-const handleRangeUpdate = ({ start, bars }: { start: number; bars: number }) => {
+function handleRangeUpdate({ start, bars }: { start: number; bars: number }) {
   startBar.value = start
-  orchestrator.setStartPosition(start)
-  sequencer.setStartPosition(start)
-  orchestrator.stopPlayback()
-  sequencer.stop()
+  selectedBars.value = bars
+  loadScore()
 }
 
-/**
- * Handles the playback of the sequencer and orchestrator.
- * @param isPlaying - A boolean indicating whether playback should start or pause.
- * @returns {Promise<void>} - A promise that resolves when the playback operation is complete.
- */
-const handlePlayback = async (isPlaying: boolean) => {
-  console.group('🎮 Playback Event')
-  console.log('Action:', isPlaying ? 'Play' : 'Pause')
-  console.log('Sequencer State:', {
-    isPlaying: sequencer.isPlaying.value,
-    progress: sequencer.progress.value,
-    currentBar: sequencer.currentBar.value,
-  })
-
-  if (isPlaying) {
-    await Tone.start()
-    console.log('Tone.js Started:', Tone.getContext().state)
-
-    if (sequencer.isPlaying.value) {
-      orchestrator.resumePlayback()
-      sequencer.resume()
-    } else {
-      const startPosition =
-        sequencer.progress.value > 0 ? sequencer.currentBar.value : startBar.value
-      orchestrator.startPlayback(startPosition)
-      sequencer.play()
-    }
-  } else {
-    orchestrator.pausePlayback()
-    sequencer.pause()
-  }
-  console.groupEnd()
-}
-
-/**
- * Stops the playback of the sequencer and orchestrator, and sets the start position of the sequencer to the current start bar value.
- */
-const handleStop = () => {
-  sequencer.stop()
-  orchestrator.stopPlayback()
-  sequencer.setStartPosition(startBar.value)
-}
-
-/**
- * Updates the BPM (beats per minute) of the sequencer and orchestrator.
- * @param newBPM - The new BPM value to set.
- */
-const handleBPMChange = (newBPM: number) => {
-  sequencer.setBPM(newBPM)
-  orchestrator.updateBPM(newBPM)
+async function handlePlayback(playing: boolean) {
+  if (!playing) { session.pause(); return }
+  playbackError.value = ''
+  try { await session.play() }
+  catch { playbackError.value = 'Audio konnte nicht gestartet werden.' }
 }
 </script>
 
@@ -210,26 +89,29 @@ const handleBPMChange = (newBPM: number) => {
       </div>
 
       <div v-if="githubStore.contributions" class="sequencer-controls">
-        <BarSelector :bars="selectedBars" @update:bars="updateBars" />
+        <BarSelector :bars="selectedBars" :total-weeks="githubStore.contributions.weeks.length" @update:bars="updateBars" />
         <BracketSelector
           v-if="gridWidth"
-          :total-weeks="52"
+          :total-weeks="githubStore.contributions.weeks.length"
           :selected-bars="selectedBars"
+          :start="startBar"
           :grid-width="gridWidth"
           @update:range="handleRangeUpdate"
         />
       </div>
 
       <div v-if="githubStore.loading" class="status">Collecting Data...</div>
-      <div v-else-if="githubStore.error" class="status error">{{ githubStore.error }} 😕</div>
+      <div v-else-if="githubStore.error" class="status error">{{ githubStore.error }}</div>
+      <div v-if="playbackError" class="status error">{{ playbackError }}</div>
+      <div v-if="githubStore.contributions" class="status">{{ githubStore.username }}</div>
       <div v-if="githubStore.contributions" ref="gridRef" class="contribution-grid">
         <Playhead
-          v-if="sequencer.isPlaying"
-          :position="sequencer.currentBar.value"
-          :progress="sequencer.progress.value"
+          v-if="status !== 'stopped'"
+          :position="currentWeek"
+          :progress="progress"
           :start-position="startBar"
           :total-bars="selectedBars"
-          :is-looping="sequencer.isLooping.value"
+          :is-looping="false"
         />
 
         <div
@@ -247,7 +129,7 @@ const handleBPMChange = (newBPM: number) => {
             :class="[
               `level-${day.level}`,
               {
-                triggered: orchestrator.isCurrentDay(weekIndex, dayIndex) && day.level >= 1,
+                triggered: status !== 'stopped' && currentWeek === weekIndex && currentDay === dayIndex && day.level >= 1,
               },
             ]"
           ></div>
@@ -256,14 +138,14 @@ const handleBPMChange = (newBPM: number) => {
 
       <div v-if="githubStore.contributions" class="playback-controls-container">
         <PlayPauseButton
-          :is-playing="sequencer.isPlaying.value"
+          :is-playing="status === 'playing'"
           @play="handlePlayback(true)"
           @pause="handlePlayback(false)"
-          @stop="handleStop"
+          @stop="session.stop()"
         />
 
         <div class="divider"></div>
-        <BPMControl :bpm="sequencer.bpm.value" @update:bpm="handleBPMChange" />
+        <BPMControl :bpm="bpm" @update:bpm="session.setBpm" />
       </div>
 
       <div v-if="githubStore.contributions" class="synth-panels">

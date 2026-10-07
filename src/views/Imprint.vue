@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'Imprint',
+  name: 'ImprintView',
 }
 </script>
 
@@ -84,7 +84,7 @@ export default {
         links below:
       </p>
       <div class="links">
-        <a href="www.michael-buschmann.dev" target="blank">www.michael-buschmann.dev</a>
+        <a href="https://www.michael-buschmann.dev" target="blank">www.michael-buschmann.dev</a>
         <a href="https://github.com/CodeRacon" target="blank">GitHub </a>
         <a href="https://www.linkedin.com/in/michael-buschmann-front-end-dev/" target="blank"
           >LinkedIn

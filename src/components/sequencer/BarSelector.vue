@@ -4,6 +4,7 @@ export default {
 }
 </script>
 <script setup lang="ts">
+import { computed } from 'vue'
 /**
  * Defines the props for the BarSelector component.
  *
@@ -15,12 +16,18 @@ const props = defineProps({
     type: Number,
     default: 4,
   },
+  totalWeeks: { type: Number, required: true },
 })
 
 /**
  * An array of available bar options for the BarSelector component.
  */
-const barOptions = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52]
+const barOptions = computed(() => {
+  const options = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52]
+    .filter((bars) => bars <= props.totalWeeks)
+  if (!options.includes(props.totalWeeks)) options.push(props.totalWeeks)
+  return options
+})
 
 /**
  * Emits an event to update the number of bars in the BarSelector component.

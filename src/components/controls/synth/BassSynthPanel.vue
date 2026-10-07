@@ -8,13 +8,11 @@ export default {
 import { computed } from 'vue'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import Fader from '../common/Fader.vue'
-import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
-import { useSynthControls } from '../../../composables/audio/useSynthControls'
+import { useStudio } from '@/audio/studio'
 
-const { updateSynthParam, synthState } = useOrchestrator()
-const { toggleSolo, toggleMute } = useSynthControls()
+const { updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
 
-const bassParams = computed(() => synthState.value.synthParams.bass)
+const bassParams = computed(() => params.bass)
 
 const updateVolume = (value: number) => updateSynthParam('bass', 'volume', value)
 const updateCutoff = (value: number) => updateSynthParam('bass', 'cutoff', value)
@@ -31,14 +29,14 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
       <div class="control-buttons">
         <button
           class="control-btn"
-          :class="{ active: synthState.muteState.has('bass') }"
+          :class="{ active: mix.isMuted('bass') }"
           @click="() => toggleMute('bass')"
         >
           M
         </button>
         <button
           class="control-btn"
-          :class="{ active: synthState.soloState === 'bass' }"
+          :class="{ active: mix.solo === 'bass' }"
           @click="() => toggleSolo('bass')"
         >
           S

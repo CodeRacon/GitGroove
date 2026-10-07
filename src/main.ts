@@ -5,7 +5,6 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-import { Tone } from 'tone/build/esm/core/Tone'
 
 const app = createApp(App)
 

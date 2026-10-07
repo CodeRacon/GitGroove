@@ -9,13 +9,11 @@ import { computed } from 'vue'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
-import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
-import { useSynthControls } from '../../../composables/audio/useSynthControls'
+import { useStudio } from '@/audio/studio'
 
-const { updateSynthParam, synthState } = useOrchestrator()
-const { toggleSolo, toggleMute } = useSynthControls()
+const { updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
 
-const leadParams = computed(() => synthState.value.synthParams.lead)
+const leadParams = computed(() => params.lead)
 
 const updateVolume = (value: number) => updateSynthParam('lead', 'volume', value)
 const updateCutoff = (value: number) => updateSynthParam('lead', 'cutoff', value)
@@ -36,14 +34,14 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
       <div class="control-buttons">
         <button
           class="control-btn"
-          :class="{ active: synthState.soloState === 'lead' }"
+          :class="{ active: mix.solo === 'lead' }"
           @click="() => toggleSolo('lead')"
         >
           S
         </button>
         <button
           class="control-btn"
-          :class="{ active: synthState.muteState.has('lead') }"
+          :class="{ active: mix.isMuted('lead') }"
           @click="() => toggleMute('lead')"
         >
           M

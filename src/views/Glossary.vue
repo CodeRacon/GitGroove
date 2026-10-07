@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'Glossary',
+  name: 'GlossaryView',
 }
 </script>
 
@@ -41,15 +41,6 @@ onMounted(() => {
  * @param term - The term to toggle the open state for.
  * @param isOpen - The current open state of the term.
  */
-const handleToggle = (term: string, isOpen: boolean) => {
-  if (isOpen) {
-    openEntries.value.add(term)
-  } else {
-    openEntries.value.delete(term)
-  }
-  localStorage.setItem('glossaryOpenEntries', JSON.stringify([...openEntries.value]))
-}
-
 /**
  * Toggles the open state of a glossary entry term in the application.
  * This function is called when the user clicks on a glossary term to expand or collapse its details.
@@ -57,11 +48,6 @@ const handleToggle = (term: string, isOpen: boolean) => {
  * @param event - The click event that triggered the toggle.
  * @param term - The term whose open state should be toggled.
  */
-const handleDetailsToggle = (event: Event, term: string) => {
-  const details = event.target as HTMLDetailsElement
-  handleToggle(term, details.open)
-}
-
 /**
  * Toggles the open state of a glossary entry term in the application.
  * If the term is already open, it will be closed. If the term is closed, it will be opened.
@@ -96,12 +82,12 @@ const glossaryEntries: GlossaryEntry[] = [
   {
     term: 'Bar',
     description:
-      'In GitGroove, one bar represents a week of GitHub contributions, containing 7 contribution squares. In music, a bar is a segment of time containing a specific number of beats.',
+      'In GitGroove, one bar represents a week with seven evenly spaced day steps over four beats.',
   },
   {
     term: 'Bass Synth',
     description:
-      'A synthesizer voice specialized in low frequencies, providing the fundamental harmonic foundation. In GitGroove, the bass synth generates patterns based on contribution levels and plays the root notes of the harmony.',
+      'A synthesizer voice specialized in low frequencies. In GitGroove, the bass synth plays the chord root on days with contributions; contribution level changes its velocity.',
   },
 
   {
@@ -200,7 +186,7 @@ const glossaryEntries: GlossaryEntry[] = [
   {
     term: 'Sound-sculpture',
     description:
-      'An artistic approach that transforms data into audible patterns and textures. In GitGroove, GitHub contribution data is sculpted into musical elements, where commit patterns become rhythms, harmonies, and melodies, creating a unique sonic representation of coding activity.',
+      'An artistic approach that transforms data into audible patterns and textures. In GitGroove, GitHub contribution counts shape rhythm, harmony, and melody.',
   },
   {
     term: 'Synthesizer/Synth',

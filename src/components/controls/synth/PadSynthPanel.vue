@@ -9,14 +9,12 @@ import { computed, ref } from 'vue'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
-import { useOrchestrator } from '../../../composables/audio/useOrchestrator'
-import { useSynthControls } from '../../../composables/audio/useSynthControls'
-import type { PadSynthParams } from '../../../composables/audio/useSynthState'
+import { useStudio } from '@/audio/studio'
+import type { PadSynthParams } from '@/audio/params'
 
-const { updateSynthParam, synthState } = useOrchestrator()
-const { toggleSolo, toggleMute } = useSynthControls()
+const { updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
 
-const padParams = computed(() => synthState.value.synthParams.pad)
+const padParams = computed(() => params.pad)
 
 const isModulation = ref(false)
 
@@ -68,14 +66,14 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
       <div class="control-buttons">
         <button
           class="control-btn"
-          :class="{ active: synthState.soloState === 'pad' }"
+          :class="{ active: mix.solo === 'pad' }"
           @click="() => toggleSolo('pad')"
         >
           S
         </button>
         <button
           class="control-btn"
-          :class="{ active: synthState.muteState.has('pad') }"
+          :class="{ active: mix.isMuted('pad') }"
           @click="() => toggleMute('pad')"
         >
           M
