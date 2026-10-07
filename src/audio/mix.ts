@@ -15,7 +15,7 @@ export class SynthMix {
   private gated = true
 
   setLevel(voice: Voice, level: number): void {
-    if (!Number.isFinite(level)) throw new Error('Ungültiger Pegel.')
+    if (!Number.isFinite(level)) throw new Error('Invalid level.')
     this.voices[voice].level = level
   }
 

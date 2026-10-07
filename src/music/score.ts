@@ -45,7 +45,7 @@ function note(midi: number): string {
 
 export function chordNotes(degree: ChordDegree, key = 'C', mode: 'major' | 'minor' = 'major'): readonly string[] {
   const keyIndex = NOTE_NAMES.indexOf(key)
-  if (keyIndex < 0) throw new Error('Ungültiger Grundton.')
+  if (keyIndex < 0) throw new Error('Invalid root note.')
   const root = 60 + keyIndex + DEGREE_OFFSETS[degree]
   const minor = degree === 'vi' || (mode === 'minor' && degree === 'I')
   return Object.freeze([root, root + (minor ? 3 : 4), root + 7].map(note))
@@ -69,7 +69,7 @@ export function createScore(
 ): Score {
   if (!Number.isInteger(startWeek) || !Number.isInteger(weekCount) || startWeek < 0 ||
       weekCount < 1 || startWeek + weekCount > calendar.weeks.length) {
-    throw new Error('Ungültiger Wochenbereich.')
+    throw new Error('Invalid week range.')
   }
   const key = settings.key ?? 'C'
   const mode = settings.mode ?? 'major'
@@ -79,7 +79,7 @@ export function createScore(
   for (let localWeek = 0; localWeek < weekCount; localWeek++) {
     const sourceIndex = startWeek + localWeek
     const source = calendar.weeks[sourceIndex]
-    if (source.days.length !== 7) throw new Error('Kalenderwoche muss sieben Tage haben.')
+    if (source.days.length !== 7) throw new Error('A calendar week must contain seven days.')
     const intensity = source.days.reduce((sum, day) => sum + day.count, 0)
     const degree = PROGRESSION[(sourceIndex + Math.min(3, Math.floor(intensity / 20))) % PROGRESSION.length]
     const chord = chordNotes(degree, key, mode)
