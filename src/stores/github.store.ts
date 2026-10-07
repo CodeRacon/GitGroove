@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { githubService } from '../services/github/github.service'
 import type { ContributionResponse } from '@/types/github.types'
+import { GitHubServiceError } from '../services/github/github.service'
+
+let latestRequest = 0
 
 /**
  * Pinia store for managing GitHub data in the GitGroove application.
@@ -16,16 +19,23 @@ export const useGitHubStore = defineStore('github', {
 
   actions: {
     async fetchContributions(username: string) {
+      const request = ++latestRequest
       this.loading = true
       this.error = null
+      this.contributions = null
+      this.username = ''
       try {
-        this.contributions = await githubService.fetchUserContributions(username)
-        this.username = username
+        const contributions = await githubService.fetchUserContributions(username)
+        if (request === latestRequest) {
+          this.contributions = contributions
+          this.username = username.trim()
+        }
       } catch (error) {
-        this.error = 'Fehler beim Laden der GitHub Daten'
-        console.error(error)
+        if (request === latestRequest) {
+          this.error = error instanceof GitHubServiceError ? error.message : 'Der Kalender konnte nicht geladen werden.'
+        }
       } finally {
-        this.loading = false
+        if (request === latestRequest) this.loading = false
       }
     },
   },
