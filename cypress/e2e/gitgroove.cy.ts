@@ -19,6 +19,8 @@ describe('GitGroove', () => {
     cy.get('.day').should('have.length', 7)
     cy.get('.day.level-4').should('have.length', 1)
     cy.contains('.bar-buttons button', '1').should('exist')
+    cy.get('input[type="range"][aria-label="Tempo"]').invoke('val', 150).trigger('input')
+    cy.contains('.bpm-control', '150 BPM').should('be.visible')
   })
 
   it('does not show stale data after a failed profile change', () => {
@@ -32,7 +34,7 @@ describe('GitGroove', () => {
     cy.get('.week').should('have.length', 1)
     cy.get('input[placeholder="GitHub Username"]').clear()
     cy.get('input[placeholder="GitHub Username"]').type('missing{enter}')
-    cy.contains('.error', 'Dieses GitHub-Profil wurde nicht gefunden.').should('be.visible')
+    cy.contains('.error', 'GitHub profile not found.').should('be.visible')
     cy.get('.week').should('not.exist')
   })
 })
