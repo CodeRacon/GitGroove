@@ -21,11 +21,28 @@ if (!preg_match('/^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/iD', $username)) {
     respond(400, 'Invalid GitHub username');
 }
 
-// On Hostinger, place gitgroove-secret.php one directory above public_html.
-$secretFile = dirname(__DIR__, 2) . '/gitgroove-secret.php';
 $token = getenv('GITHUB_TOKEN');
-if (($token === false || $token === '') && is_file($secretFile)) {
-    $token = require $secretFile;
+if ($token === false || $token === '') {
+    // A subdomain may live inside another site's public_html directory.
+    // Look only above public_html so the secret cannot be served as a file.
+    $directory = __DIR__;
+    while (basename($directory) !== 'public_html' && dirname($directory) !== $directory) {
+        $directory = dirname($directory);
+    }
+    $directory = basename($directory) === 'public_html'
+        ? dirname($directory)
+        : dirname(__DIR__, 2);
+
+    for ($level = 0; $level < 3; $level++) {
+        $secretFile = $directory . '/gitgroove-secret.php';
+        if (is_file($secretFile) && is_readable($secretFile)) {
+            $token = require $secretFile;
+            break;
+        }
+        $parent = dirname($directory);
+        if ($parent === $directory) break;
+        $directory = $parent;
+    }
 }
 if (!is_string($token) || $token === '' || preg_match('/[\r\n]/', $token)) {
     respond(503, 'GitHub token is not configured');
