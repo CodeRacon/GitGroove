@@ -32,7 +32,7 @@ export const useGitHubStore = defineStore('github', {
         }
       } catch (error) {
         if (request === latestRequest) {
-          this.error = error instanceof GitHubServiceError ? error.message : 'Der Kalender konnte nicht geladen werden.'
+          this.error = error instanceof GitHubServiceError ? error.message : 'The contribution calendar could not be loaded.'
         }
       } finally {
         if (request === latestRequest) this.loading = false

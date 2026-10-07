@@ -67,11 +67,15 @@ function handleRangeUpdate({ start, bars }: { start: number; bars: number }) {
   loadScore()
 }
 
+function updateBpm(value: number) {
+  session.setBpm(value)
+}
+
 async function handlePlayback(playing: boolean) {
   if (!playing) { session.pause(); return }
   playbackError.value = ''
   try { await session.play() }
-  catch { playbackError.value = 'Audio konnte nicht gestartet werden.' }
+  catch { playbackError.value = 'Audio could not be started.' }
 }
 </script>
 
@@ -145,7 +149,7 @@ async function handlePlayback(playing: boolean) {
         />
 
         <div class="divider"></div>
-        <BPMControl :bpm="bpm" @update:bpm="session.setBpm" />
+        <BPMControl :bpm="bpm" @update:bpm="updateBpm" />
       </div>
 
       <div v-if="githubStore.contributions" class="synth-panels">

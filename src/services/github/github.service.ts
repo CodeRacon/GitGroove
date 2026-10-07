@@ -14,7 +14,7 @@ export class GitHubService {
   async fetchUserContributions(username: string): Promise<ContributionResponse> {
     const login = username.trim()
     if (!/^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/i.test(login)) {
-      throw new GitHubServiceError('invalid-user', 'Bitte einen gültigen GitHub-Nutzernamen eingeben.')
+      throw new GitHubServiceError('invalid-user', 'Enter a valid GitHub username.')
     }
     let response: Response
     try {
@@ -22,17 +22,17 @@ export class GitHubService {
         headers: { Accept: 'application/json' },
       })
     } catch {
-      throw new GitHubServiceError('network', 'Der GitHub-Dienst ist gerade nicht erreichbar.')
+      throw new GitHubServiceError('network', 'GitHub is currently unavailable.')
     }
-    if (response.status === 404) throw new GitHubServiceError('not-found', 'Dieses GitHub-Profil wurde nicht gefunden.')
-    if (response.status === 401 || response.status === 403) throw new GitHubServiceError('auth', 'Der GitHub-Zugriff ist derzeit nicht verfügbar.')
-    if (response.status === 429) throw new GitHubServiceError('rate-limit', 'Zu viele Anfragen. Bitte später erneut versuchen.')
-    if (!response.ok) throw new GitHubServiceError('network', 'Der GitHub-Dienst ist gerade nicht erreichbar.')
+    if (response.status === 404) throw new GitHubServiceError('not-found', 'GitHub profile not found.')
+    if (response.status === 401 || response.status === 403) throw new GitHubServiceError('auth', 'GitHub access is currently unavailable.')
+    if (response.status === 429) throw new GitHubServiceError('rate-limit', 'Too many requests. Please try again later.')
+    if (!response.ok) throw new GitHubServiceError('network', 'GitHub is currently unavailable.')
     try {
       const body: unknown = await response.json()
       return normalizeContributionCalendar(body)
     } catch {
-      throw new GitHubServiceError('invalid-response', 'GitHub hat ungültige Kalenderdaten geliefert.')
+      throw new GitHubServiceError('invalid-response', 'GitHub returned invalid contribution data.')
     }
   }
 }
