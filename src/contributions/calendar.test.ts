@@ -24,9 +24,9 @@ describe('normalizeContributionCalendar', () => {
     expect(() => normalizeContributionCalendar({ weeks: [] })).toThrow()
     expect(() => normalizeContributionCalendar({ totalContributions: 1, weeks: [
       { contributionDays: [{ date: '2026-01-05', contributionCount: 1 }, { date: '2026-01-05', contributionCount: 1 }] },
-    ] })).toThrow(/doppelter/)
+    ] })).toThrow(/duplicate/)
     expect(() => normalizeContributionCalendar({ totalContributions: 2, weeks: [
       { contributionDays: [{ date: '2026-01-05', contributionCount: 1 }, { date: '2026-01-07', contributionCount: 1 }] },
-    ] })).toThrow(/Lücke/)
+    ] })).toThrow(/Gap/)
   })
 })

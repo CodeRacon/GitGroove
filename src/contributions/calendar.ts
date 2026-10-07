@@ -19,18 +19,18 @@ export interface ContributionResponse {
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('Ungültige Kalenderdaten von GitHub.')
+    throw new Error('Invalid GitHub contribution data.')
   }
   return value as Record<string, unknown>
 }
 
 function dateNumber(value: unknown): number {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw new Error('Ungültiges Beitragsdatum.')
+    throw new Error('Invalid contribution date.')
   }
   const time = Date.parse(`${value}T00:00:00Z`)
   if (!Number.isFinite(time) || new Date(time).toISOString().slice(0, 10) !== value) {
-    throw new Error('Ungültiges Beitragsdatum.')
+    throw new Error('Invalid contribution date.')
   }
   return time
 }
@@ -51,32 +51,32 @@ export function normalizeContributionCalendar(input: unknown): ContributionRespo
   const calendar = record(input)
   if (!Array.isArray(calendar.weeks) || !Number.isInteger(calendar.totalContributions) ||
       (calendar.totalContributions as number) < 0) {
-    throw new Error('Ungültige Kalenderdaten von GitHub.')
+    throw new Error('Invalid GitHub contribution data.')
   }
   const days = new Map<number, number>()
   for (const rawWeek of calendar.weeks) {
     const week = record(rawWeek)
     const rawDays = week.contributionDays ?? week.days
-    if (!Array.isArray(rawDays)) throw new Error('Ungültige Kalenderwoche.')
+    if (!Array.isArray(rawDays)) throw new Error('Invalid contribution week.')
     for (const rawDay of rawDays) {
       const day = record(rawDay)
       const time = dateNumber(day.date)
       const count = day.contributionCount ?? day.count
       if (!Number.isInteger(count) || (count as number) < 0 || days.has(time)) {
-        throw new Error('Ungültiger oder doppelter Beitragstag.')
+        throw new Error('Invalid or duplicate contribution day.')
       }
       days.set(time, count as number)
     }
   }
   if (days.size === 0) {
-    if (calendar.totalContributions !== 0) throw new Error('Unvollständiger Beitragskalender.')
+    if (calendar.totalContributions !== 0) throw new Error('Incomplete contribution calendar.')
     return { totalContributions: 0, weeks: [] }
   }
   const times = [...days.keys()].sort((a, b) => a - b)
   const first = times[0]
   const last = times[times.length - 1]
   for (let time = first; time <= last; time += 86_400_000) {
-    if (!days.has(time)) throw new Error('Lücke im Beitragskalender.')
+    if (!days.has(time)) throw new Error('Gap in contribution calendar.')
   }
   const start = first - new Date(first).getUTCDay() * 86_400_000
   const end = last + (6 - new Date(last).getUTCDay()) * 86_400_000
