@@ -23,23 +23,32 @@ const updateSustain = (value: number) => updateSynthParam('bass', 'sustain', val
 const updateRelease = (value: number) => updateSynthParam('bass', 'release', value)
 </script>
 <template>
-  <div class="bass-synth-panel">
+  <div class="bass-synth-panel synth-panel" role="group" aria-label="Bass synthesizer">
     <div class="panel-header">
-      <h3>Bass Synth</h3>
+      <div>
+        <h3>Bass</h3>
+        <p class="voice-description">Low-end foundation</p>
+      </div>
       <div class="control-buttons">
         <button
           class="control-btn"
+          type="button"
           :class="{ active: mix.isMuted('bass') }"
-          @click="() => toggleMute('bass')"
+          :aria-pressed="mix.isMuted('bass')"
+          aria-label="Mute bass"
+          @click="toggleMute('bass')"
         >
-          M
+          Mute
         </button>
         <button
           class="control-btn"
+          type="button"
           :class="{ active: mix.solo === 'bass' }"
-          @click="() => toggleSolo('bass')"
+          :aria-pressed="mix.solo === 'bass'"
+          aria-label="Solo bass"
+          @click="toggleSolo('bass')"
         >
-          S
+          Solo
         </button>
       </div>
     </div>
@@ -58,12 +67,14 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
       </div>
 
       <div class="knob-section filter">
+        <span class="control-section-title">Filter</span>
         <RotaryKnob
           v-model="bassParams.cutoff"
           :min="20"
           :max="4000"
           :step="10"
           label="Cutoff"
+          unit="Hz"
           @update:modelValue="updateCutoff"
         />
 
@@ -78,12 +89,14 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
       </div>
 
       <div class="knob-section envelope">
+        <span class="control-section-title">Envelope</span>
         <RotaryKnob
           v-model="bassParams.attack"
           :min="0.1"
           :max="1"
           :step="0.05"
           label="Attack"
+          unit="s"
           @update:modelValue="updateAttack"
         />
 
@@ -93,6 +106,7 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
           :max="1"
           :step="0.05"
           label="Decay"
+          unit="s"
           @update:modelValue="updateDecay"
         />
 
@@ -111,89 +125,10 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
           :max="5"
           :step="0.05"
           label="Release"
+          unit="s"
           @update:modelValue="updateRelease"
         />
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.bass-synth-panel {
-  background: #242424;
-  border-radius: 12px;
-  padding: 16px;
-  width: 12rem;
-  height: fit-content;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-}
-
-.control-buttons {
-  display: flex;
-  gap: 4px;
-}
-
-.control-btn {
-  width: 24px;
-  height: 20px;
-  background: #2a2a2a;
-  border: 1px solid #3333338d;
-  border-radius: 4px;
-  color: #888;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.control-btn:hover {
-  background: #333;
-  color: #fff;
-}
-
-.control-btn.active {
-  color: #1a1a1a;
-  background: #4caf50;
-  box-shadow: 0 0 4px #4caf50;
-}
-
-.panel-header h3 {
-  margin: 0;
-  color: #4caf50;
-  font-size: 1.2em;
-  font-weight: 500;
-}
-
-.controls-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.knob-section {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.knob-section.filter {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #333;
-}
-
-.volume-section {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #333;
-}
-</style>

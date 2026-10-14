@@ -28,23 +28,32 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 </script>
 
 <template>
-  <div class="lead-synth-panel">
+  <div class="lead-synth-panel synth-panel" role="group" aria-label="Lead synthesizer">
     <div class="panel-header">
-      <h3>Lead Synth</h3>
+      <div>
+        <h3>Lead</h3>
+        <p class="voice-description">Melody & texture</p>
+      </div>
       <div class="control-buttons">
         <button
           class="control-btn"
-          :class="{ active: mix.solo === 'lead' }"
-          @click="() => toggleSolo('lead')"
+          type="button"
+          :class="{ active: mix.isMuted('lead') }"
+          :aria-pressed="mix.isMuted('lead')"
+          aria-label="Mute lead"
+          @click="toggleMute('lead')"
         >
-          S
+          Mute
         </button>
         <button
           class="control-btn"
-          :class="{ active: mix.isMuted('lead') }"
-          @click="() => toggleMute('lead')"
+          type="button"
+          :class="{ active: mix.solo === 'lead' }"
+          :aria-pressed="mix.solo === 'lead'"
+          aria-label="Solo lead"
+          @click="toggleSolo('lead')"
         >
-          M
+          Solo
         </button>
       </div>
     </div>
@@ -62,12 +71,14 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
         />
       </div>
       <div class="knob-section effects">
+        <span class="control-section-title">Tone & effects</span>
         <RotaryKnob
           v-model="leadParams.cutoff"
           :min="20"
           :max="2000"
           :step="10"
           label="Cutoff"
+          unit="Hz"
           @update:modelValue="updateCutoff"
         />
 
@@ -77,6 +88,7 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
           :max="1"
           :step="0.05"
           label="Delay Time"
+          unit="s"
           @update:modelValue="updateDelayTime"
         />
 
@@ -100,12 +112,14 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
       </div>
 
       <div class="knob-section envelope">
+        <span class="control-section-title">Envelope</span>
         <RotaryKnob
           v-model="leadParams.attack"
           :min="0.1"
           :max="1"
           :step="0.05"
           label="Attack"
+          unit="s"
           @update:modelValue="updateAttack"
         />
 
@@ -115,6 +129,7 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
           :max="1"
           :step="0.05"
           label="Decay"
+          unit="s"
           @update:modelValue="updateDecay"
         />
 
@@ -133,11 +148,12 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
           :max="5"
           :step="0.05"
           label="Release"
+          unit="s"
           @update:modelValue="updateRelease"
         />
       </div>
 
-      <div class="knob-section">
+      <div class="switch-section">
         <ToggleSwitch
           v-model="leadParams.distortion"
           label="Distortion"
@@ -147,86 +163,3 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
     </div>
   </div>
 </template>
-
-<style scoped>
-.lead-synth-panel {
-  background: #242424;
-  border-radius: 12px;
-  padding: 16px;
-  width: 12rem;
-  height: fit-content;
-
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-}
-
-.control-buttons {
-  display: flex;
-  gap: 4px;
-}
-
-.control-btn {
-  width: 24px;
-  height: 20px;
-  background: #2a2a2a;
-  border: 1px solid #3333338d;
-  border-radius: 4px;
-  color: #888;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.control-btn:hover {
-  background: #333;
-  color: #fff;
-}
-
-.control-btn.active {
-  color: #1a1a1a;
-  background: #4caf50;
-  box-shadow: 0 0 4px #4caf50;
-}
-
-.panel-header h3 {
-  margin: 0;
-  color: #4caf50;
-  font-size: 1.2em;
-  font-weight: 500;
-}
-
-.controls-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.knob-section {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.knob-section.effects,
-.knob-section.envelope {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #333;
-}
-
-.volume-section {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #333;
-}
-</style>

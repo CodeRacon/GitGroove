@@ -1,130 +1,65 @@
-<script lang="ts">
-export default {
-  name: 'BarSelector',
-}
-</script>
 <script setup lang="ts">
 import { computed } from 'vue'
-/**
- * Defines the props for the BarSelector component.
- *
- * @prop {number} bars - The number of bars to display in the bar selector.
- * @default 4
- */
-const props = defineProps({
-  bars: {
-    type: Number,
-    default: 4,
-  },
-  totalWeeks: { type: Number, required: true },
-})
 
-/**
- * An array of available bar options for the BarSelector component.
- */
+const props = defineProps<{ bars: number; totalWeeks: number; disabled?: boolean }>()
+const emit = defineEmits<{ 'update:bars': [bars: number] }>()
 const barOptions = computed(() => {
-  const options = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52]
-    .filter((bars) => bars <= props.totalWeeks)
+  const options = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52].filter(
+    (bars) => bars <= props.totalWeeks,
+  )
   if (!options.includes(props.totalWeeks)) options.push(props.totalWeeks)
   return options
 })
-
-/**
- * Emits an event to update the number of bars in the BarSelector component.
- *
- * @param {number} bars - The new number of bars to display.
- * @emits {string} update:bars - Emits an event to update the bars prop.
- */
-
-/**
- * Emits an event to update the number of bars in the BarSelector component.
- *
- * @param {number} bars - The new number of bars to display.
- * @emits {string} update:bars - Emits an event to update the bars prop.
- */
-const emit = defineEmits(['update:bars'])
-
-/**
- * Emits an event to update the number of bars in the BarSelector component.
- *
- * @param {number} bars - The new number of bars to display.
- * @emits {string} update:bars - Emits an event to update the bars prop.
- */
-const updateBars = (bars: number) => {
-  emit('update:bars', bars)
-}
 </script>
 
 <template>
   <div class="bar-selector">
-    <div class="heading">
-      <h2>Bar-Selector</h2>
-      <span>1. Define the loop-length via buttons below.</span> <br />
-      <span>2. Grab & move the selector to desired position.</span>
-    </div>
-    <div class="bar-buttons">
-      <button
-        v-for="bars in barOptions"
-        :key="bars"
-        :class="{ active: props.bars === bars }"
-        @click="updateBars(bars)"
-      >
-        <b>{{ bars }}</b>
-      </button>
-    </div>
+    <label for="sequence-length">Section length <span>1 week = 1 bar</span></label>
+    <select
+      id="sequence-length"
+      :value="bars"
+      :disabled="disabled"
+      @change="emit('update:bars', Number(($event.target as HTMLSelectElement).value))"
+    >
+      <option v-for="option in barOptions" :key="option" :value="option">
+        {{ option }} {{ option === 1 ? 'week' : 'weeks'
+        }}{{ option === totalWeeks ? ' · full calendar' : '' }}
+      </option>
+    </select>
   </div>
 </template>
 
 <style scoped>
 .bar-selector {
-  padding: 0 1rem;
-  width: 100%;
-}
-
-.heading {
-  margin-bottom: 1rem;
-}
-
-.heading h3 {
-  margin-bottom: 0.5rem;
-}
-
-.heading span {
-  font-weight: 400;
-  font-size: 0.875rem;
-  font-style: italic;
-  color: #cad9cb;
-}
-
-.bar-buttons {
   display: flex;
-  justify-content: space-between;
-  gap: 0.25rem;
-  font-size: 1.25rem;
-  font-weight: bold;
-  width: 100%;
+  align-items: center;
+  gap: 12px;
 }
-
-button {
-  width: 3.25rem;
-  padding: 0.5rem 1rem;
-  border: 2px solid #4caf50;
-  border-radius: 4px;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.3s;
-  color: white;
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
-
-button:hover {
-  background: #4caf4f72;
+label span {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 400;
 }
-
-button:active {
-  background: #4caf50;
+select {
+  min-height: 44px;
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 8px 30px 8px 12px;
+  font-size: 0.8rem;
 }
-
-button.active {
-  background: #4caf50;
+@media (max-width: 400px) {
+  .bar-selector {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 </style>

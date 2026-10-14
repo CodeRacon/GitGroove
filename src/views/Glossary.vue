@@ -29,7 +29,13 @@ const openEntries = ref<Set<string>>(new Set())
 onMounted(() => {
   const saved = localStorage.getItem('glossaryOpenEntries')
   if (saved) {
-    openEntries.value = new Set(JSON.parse(saved))
+    try {
+      const entries: unknown = JSON.parse(saved)
+      if (Array.isArray(entries) && entries.every((entry) => typeof entry === 'string'))
+        openEntries.value = new Set(entries)
+    } catch {
+      /* Ignore outdated browser preferences. */
+    }
   }
 })
 
@@ -205,9 +211,23 @@ const glossaryEntries: GlossaryEntry[] = [
   <div class="glossary">
     <h2>Sound & Music Glossary</h2>
     <div class="glossary-grid">
-      <div v-for="entry in glossaryEntries" :key="entry.term" class="glossary-item">
-        <div class="term" @click="handleTermClick(entry.term)">• {{ entry.term }}</div>
-        <div class="wrapper" :class="{ 'is-open': openEntries.has(entry.term) }">
+      <div v-for="(entry, index) in glossaryEntries" :key="entry.term" class="glossary-item">
+        <button
+          class="term"
+          type="button"
+          :aria-expanded="openEntries.has(entry.term)"
+          :aria-controls="`glossary-entry-${index}`"
+          @click="handleTermClick(entry.term)"
+        >
+          {{ entry.term
+          }}<span aria-hidden="true">{{ openEntries.has(entry.term) ? '−' : '+' }}</span>
+        </button>
+        <div
+          class="wrapper"
+          :id="`glossary-entry-${index}`"
+          :aria-hidden="!openEntries.has(entry.term)"
+          :class="{ 'is-open': openEntries.has(entry.term) }"
+        >
           <div class="inner">
             <div class="content">
               {{ entry.description }}
@@ -221,8 +241,7 @@ const glossaryEntries: GlossaryEntry[] = [
 
 <style scoped>
 .glossary {
-  padding: 2rem;
-  width: 40rem;
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -234,22 +253,30 @@ const glossaryEntries: GlossaryEntry[] = [
 }
 
 .glossary-item {
-  background: #2a2a2a;
+  background: var(--color-surface);
   border-radius: 8px;
-  border: 1px solid #3333338d;
+  border: 1px solid var(--color-border);
   overflow: hidden;
 }
 
 .term {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  background: transparent;
+  text-align: left;
   padding: 0.625rem 1rem;
   cursor: pointer;
-  color: #4caf50;
+  color: var(--color-text);
   font-weight: 700;
   user-select: none;
 }
 
 .term:hover {
-  background: #333;
+  background: var(--color-surface-raised);
 }
 
 .wrapper {
@@ -268,8 +295,8 @@ const glossaryEntries: GlossaryEntry[] = [
 
 .content {
   padding: 1rem;
-  color: #cad9cb;
-  border-top: 1px solid #3333338d;
+  color: var(--color-muted);
+  border-top: 1px solid var(--color-border);
   line-height: 1.5;
 }
 </style>
