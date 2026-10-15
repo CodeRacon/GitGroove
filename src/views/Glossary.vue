@@ -68,7 +68,7 @@ const glossaryEntries: GlossaryEntry[] = [
   {
     term: 'Arpeggio',
     description:
-      'A musical technique where notes of a chord are played in sequence rather than simultaneously. In GitGroove, arpeggios are triggered by high contribution levels.',
+      'A chord played as successive notes. The Arpeggio Pattern selector on Bass and Lead independently offers Original, Up, Down and Up/Down. Up/Down reverses without repeating the turning notes. Patterns restart each week; silent days stay silent. Bass keeps one note per active day; Lead keeps two or four notes on brighter days. Changes keep playback running.',
   },
   {
     term: 'Attack',
@@ -83,7 +83,7 @@ const glossaryEntries: GlossaryEntry[] = [
   {
     term: 'Bass Synth',
     description:
-      'The low-frequency foundation of the mix. It plays the chord root on days with contributions; brighter days increase note velocity. Choose Square, Sine, Triangle or Saw to change its basic tone.',
+      'The low-frequency foundation of the mix. In Original mode it plays the chord root on days with contributions; other patterns walk through the week’s chord tones, one note per active day. Brighter days increase note velocity. Choose Square, Sine, Triangle or Saw to change its basic tone.',
   },
 
   {
@@ -109,7 +109,12 @@ const glossaryEntries: GlossaryEntry[] = [
   {
     term: 'Contribution Calendar',
     description:
-      'A grid of daily GitHub activity. Each square is one day and each column is one week. Days with 1–5 contributions trigger bass, 6–10 add pad chords, 11–19 add lead notes and 20 or more add a lead arpeggio. Empty days start no new notes, but existing notes and effects can continue to fade.',
+      'A grid of daily GitHub activity. Each square is one day and each column is one week. Days with 1–5 contributions trigger bass, 6–10 add pad chords, 11–19 add two lead notes and 20 or more add four lead notes. Empty days start no new notes, but existing notes and effects can continue to fade.',
+  },
+  {
+    term: 'Contribution History',
+    description:
+      'The year buttons below the grid load the years available from GitHub. Last 12 months is a rolling year; a numbered year runs January–December, or up to today for this year. Years load on demand and are cached for five minutes. Choosing another year stops playback immediately. Explore the new grid after it loads, then press Play; playback never restarts automatically. A failed request leaves the previous grid visible and stopped. Sound settings stay unchanged. Shared sounds remain frozen until you choose Explore profile history.',
   },
   {
     term: 'Cutoff',
@@ -167,6 +172,11 @@ const glossaryEntries: GlossaryEntry[] = [
       'A selected section that repeats during playback. One week equals one bar, so section length and tempo determine the loop duration. The Loop WAV export contains exactly one section, with short fades at its boundaries.',
   },
   {
+    term: 'Mini Player',
+    description:
+      'Compact playback controls at the bottom of the screen when the main Play/Pause controls are out of view. It shows the current profile, loop length and playback state, and remains available when paused or reading Glossary/About. Select the profile to return to the studio controls.',
+  },
+  {
     term: 'Modulation',
     description:
       'One signal changing another to shape a sound. The pad uses FM (frequency modulation). Its Modulation switch changes the four envelope knobs between the normal amplitude envelope and the modulation envelope; it does not turn FM on or off. Both sets of settings are retained.',
@@ -198,7 +208,7 @@ const glossaryEntries: GlossaryEntry[] = [
   {
     term: 'Reset Sound',
     description:
-      'Restores the original synth settings, C-major root key, octave positions, volume levels, Mute/Solo states, Lead focus and 90 BPM. It stops playback while keeping your contribution calendar and selected weeks.',
+      'Restores the original synth settings and patterns, C-major root key, octave positions, volume levels, Mute/Solo states, Lead focus and 90 BPM. It stops playback while keeping your contribution calendar, year and selected weeks.',
   },
   {
     term: 'Resonance',
@@ -216,6 +226,11 @@ const glossaryEntries: GlossaryEntry[] = [
       'The tonal home of the music. The piano-style selector offers twelve major keys and transposes all three voices together. C major is the default. Changing key keeps playback and its current position; new notes use the selected key while existing notes and effects can ring out.',
   },
   {
+    term: 'Section Length',
+    description:
+      'The number of weeks included in your loop; one week is one musical bar. Choose 4, 8, 12 or 16 directly, or use More… for other lengths and the full calendar. A new length stops playback and adjusts the selection to stay inside the calendar.',
+  },
+  {
     term: 'Snapshot',
     description:
       'A frozen copy of a sound: profile name, contribution dates and counts, selected weeks, tempo, root key, octaves, every synth parameter, effects, volume, Mute/Solo, Lead focus and the pad envelope view. Share sound embeds it in a link. Opening it restores the notes and settings without fetching GitHub again; press Play to listen from the section start. Reverb can vary slightly between sessions.',
@@ -224,6 +239,11 @@ const glossaryEntries: GlossaryEntry[] = [
     term: 'Solo',
     description:
       'Lets you hear one voice on its own, including a voice that was muted. Press Solo again to restore the stored Mute states and levels. Solo affects both playback and WAV export.',
+  },
+  {
+    term: 'Space Shortcut',
+    description:
+      'Press Space to start, pause or resume your loaded sequence from Studio, Glossary or About. It does not override text inputs, dropdowns, focused buttons and links, or open dialogs. Holding Space triggers only once. Playback continues when changing between these views.',
   },
   {
     term: 'Sustain',

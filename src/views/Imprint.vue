@@ -64,29 +64,42 @@ export default {
       <p>
         Choose a section of the calendar and press Play to hear it repeat. Pause keeps your
         position; Stop returns to the section start. You can try CodeRacon's profile without a
-        GitHub account of your own.
+        GitHub account of your own. Explore earlier activity with the year buttons below the grid,
+        or keep the rolling Last 12 months view. Choosing another year stops playback immediately.
+        Years load on demand; explore the new grid, then press Play. Your sound settings stay in
+        place.
       </p>
 
       <h3>Make It Yours</h3>
       <p>
         Shape three voices — Bass, Pad and Lead — with their own filters, envelopes, volume and
         effects. Choose the bass waveform, transpose the music with the root-key keyboard and shift
-        each voice up or down an octave. Mute and Solo help you explore the mix; optional Lead focus
-        briefly lowers the pad at lead note attacks. It is off by default.
+        each voice up or down an octave. Bass and Lead each offer Original, Up, Down and Up/Down
+        arpeggio patterns; activity still controls the rhythm and silent days stay silent. Mute and
+        Solo help you explore the mix; optional Lead focus briefly lowers the pad at lead note
+        attacks. It is off by default.
       </p>
       <p>
-        Tempo ranges from 30 to 300 BPM. Key and octave changes keep the loop playing at its current
-        position: new notes follow your choice while existing notes and effects can ring out. A new
-        selection stops playback at the section start. Reset sound restores the original sound, mix
-        and tempo while keeping the calendar and selected weeks.
+        Tempo ranges from 30 to 300 BPM. Key, octave and pattern changes keep the loop playing at
+        its current position: new notes follow your choice while existing notes and effects can ring
+        out. A new selection stops playback at the section start. Reset sound restores the original
+        sound, mix and tempo while keeping the calendar and selected weeks.
+      </p>
+
+      <p>
+        Choose 4, 8, 12 or 16 weeks with the section-length buttons; More… offers other lengths and
+        the full calendar. Space toggles Play/Pause outside text fields, dropdowns, focused buttons
+        and open dialogs. Playback continues while you read Glossary or About. A compact player
+        appears at the bottom when the main controls are out of view, including on mobile; it stays
+        available after pausing. Select its profile to return to the studio controls.
       </p>
 
       <h3>Share a Sound, Save a Loop</h3>
       <p>
-        Share sound captures the profile, contribution calendar, selected weeks and every sound
-        setting in a complete link and downloadable QR code. The recipient opens this frozen
-        snapshot and presses Play; no new GitHub request is needed, so later profile activity cannot
-        change its notes or settings. Reverb can vary slightly between sessions.
+        Share sound captures the profile, contribution calendar and year, selected weeks, patterns
+        and every sound setting in a complete link and downloadable QR code. The recipient opens
+        this frozen snapshot and presses Play; no new GitHub request is needed, so later profile
+        activity cannot change its notes or settings. Reverb can vary slightly between sessions.
       </p>
       <p>
         Download WAV saves a stereo recording of the selected section and current settings,
@@ -134,7 +147,8 @@ export default {
         GitGroove uses profile names, dates and daily contribution counts to create its music,
         rather than repository or commit contents. You do not need to sign in to GitHub. Profile
         requests pass through a server endpoint, which keeps the API token on the server and caches
-        successful calendar responses for five minutes.
+        successful calendar responses for five minutes, separately for each profile and period.
+        Available history follows GitHub’s contribution visibility rules.
       </p>
       <p>
         Shared links contain the captured profile and calendar alongside the sound settings; anyone
