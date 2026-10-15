@@ -29,7 +29,12 @@ function source() {
       values[key] = (min + max) / 2
   }
   config.selection = { startWeek: 12, weekCount: 16 }
-  config.sound = { key: 'Eb', octaves: { bass: -1, pad: 0, lead: 1 }, leadFocus: 35 }
+  config.sound = {
+    patterns: { bass: 'down', lead: 'up-down' },
+    key: 'Eb',
+    octaves: { bass: -1, pad: 0, lead: 1 },
+    leadFocus: 35,
+  }
   config.synth.bass.waveform = 'sawtooth'
   config.synth.pad.modDecay = 2.1
   config.synth.lead.distortion = true
@@ -83,6 +88,50 @@ describe('sound snapshots', () => {
     expect(snapshotFromData(legacy)).toEqual(snapshot)
     expect(snapshotFromData(legacy).soundVersion).toBe(2)
     expect(() => snapshotFromData({ ...legacy, soundVersion: 999 })).toThrow(/version/)
+  })
+
+  it('migrates mapping-2 links to Original without changing their musical interpretation', () => {
+    const { snapshot } = source()
+    const data = snapshotToData(snapshot)
+    const { patterns: _patterns, ...legacySound } = data.sound
+    expect(_patterns.bass).toBe('down')
+    const { sourceYear: _year, ...legacyData } = data
+    expect(_year).toBeNull()
+    const restored = snapshotFromData({ ...legacyData, mappingVersion: 2, sound: legacySound })
+    expect(restored.sound.patterns).toEqual({ bass: 'original', lead: 'original' })
+    expect(restored.sourceYear).toBeNull()
+    const { patterns: _restoredPatterns, ...settings } = restored.sound
+    expect(_restoredPatterns.lead).toBe('original')
+    expect(createScore(restored.calendar, restored.profile, 0, 1, restored.sound)).toEqual(
+      createScore(restored.calendar, restored.profile, 0, 1, settings),
+    )
+  })
+
+  it('preserves a selected calendar year and rejects mismatched dates or invalid patterns', async () => {
+    const { config } = source()
+    const calendar = normalizeContributionCalendar({
+      totalContributions: 2,
+      weeks: [{ contributionDays: [{ date: '2024-02-29', contributionCount: 2 }] }],
+    })
+    const snapshot = captureSnapshot(
+      { ...config, selection: { startWeek: 0, weekCount: 1 } },
+      'CodeRacon',
+      calendar,
+      90,
+      { muted: { bass: false, pad: false, lead: false }, solo: null },
+      2024,
+    )
+    expect((await decodeSnapshot(await encodeSnapshot(snapshot))).sourceYear).toBe(2024)
+    expect(() => snapshotFromData({ ...snapshotToData(snapshot), sourceYear: 2025 })).toThrow(
+      /year/,
+    )
+    const data = snapshotToData(snapshot)
+    expect(() =>
+      snapshotFromData({
+        ...data,
+        sound: { ...data.sound, patterns: { bass: 'invalid', lead: 'up' } },
+      }),
+    ).toThrow(/setting/)
   })
 
   it('rejects unsupported versions, invalid ranges and untrusted synth values', () => {

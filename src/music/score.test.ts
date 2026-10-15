@@ -73,3 +73,74 @@ describe('createScore', () => {
     })
   })
 })
+
+describe('arpeggio patterns', () => {
+  const active = normalizeContributionCalendar({
+    totalContributions: 100,
+    weeks: [
+      {
+        contributionDays: Array.from({ length: 7 }, (_, i) => ({
+          date: `2026-01-${String(4 + i).padStart(2, '0')}`,
+          contributionCount: i === 2 ? 0 : 20,
+        })),
+      },
+    ],
+  })
+  // Week intensity chooses vi: A minor.
+  it.each([
+    ['up', ['A2', 'C3', 'E3', 'A2', 'C3', 'E3']],
+    ['down', ['E3', 'C3', 'A2', 'E3', 'C3', 'A2']],
+    ['up-down', ['A2', 'C3', 'E3', 'C3', 'A2', 'C3']],
+  ] as const)(
+    'plays %s across active bass days, preserving silence, rhythm and pad',
+    (pattern, expected) => {
+      const original = createScore(active, 'CodeRacon')
+      const changed = createScore(active, 'CodeRacon', 0, 1, { patterns: { bass: pattern } })
+      expect(
+        changed.events.filter((event) => event.voice === 'bass').map((event) => event.notes[0]),
+      ).toEqual(expected)
+      expect(
+        changed.events.map(({ notes: _notes, ...event }) => ({
+          ...event,
+          noteCount: _notes.length,
+        })),
+      ).toEqual(
+        original.events.map(({ notes: _notes, ...event }) => ({
+          ...event,
+          noteCount: _notes.length,
+        })),
+      )
+      expect(changed.events.filter((event) => event.voice !== 'bass')).toEqual(
+        original.events.filter((event) => event.voice !== 'bass'),
+      )
+      expect(changed.events.some((event) => event.day === 2)).toBe(false)
+    },
+  )
+  it('uses ascending lead chord voicings and independent patterns with key/octave transposition', () => {
+    const original = createScore(active, 'CodeRacon')
+    const changed = createScore(active, 'CodeRacon', 0, 1, { patterns: { lead: 'up' } })
+    expect(
+      changed.events
+        .filter((event) => event.voice === 'lead')
+        .slice(0, 6)
+        .map((event) => event.notes[0]),
+    ).toEqual(['A5', 'C6', 'E6', 'A5', 'C6', 'E6'])
+    expect(changed.events.filter((event) => event.voice !== 'lead')).toEqual(
+      original.events.filter((event) => event.voice !== 'lead'),
+    )
+    const shifted = createScore(active, 'CodeRacon', 0, 1, {
+      key: 'D',
+      octaves: { lead: -1 },
+      patterns: { lead: 'up' },
+    })
+    expect(
+      shifted.events
+        .filter((event) => event.voice === 'lead')
+        .slice(0, 3)
+        .map((event) => event.notes[0]),
+    ).toEqual(['B4', 'D5', 'F#5'])
+    expect(
+      createScore(active, 'CodeRacon', 0, 1, { patterns: { bass: 'original', lead: 'original' } }),
+    ).toEqual(original)
+  })
+})

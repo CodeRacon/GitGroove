@@ -1,4 +1,5 @@
 import * as Tone from 'tone'
+import { renderTransportCase } from './transport-probe'
 import { StudioAudioGraph } from '@/audio/graph'
 import { SynthMix } from '@/audio/mix'
 import { defaultStudioConfig } from '@/studio/state'
@@ -41,6 +42,12 @@ export async function renderAudioCase(name: Probe) {
     config.synth.lead.reverbMix = 1
     config.synth.lead.delayFeedback = 1
     config.sound.octaves = { bass: 1, pad: -1, lead: 1 }
+  }
+  if (name === 'dense-patterns') {
+    config.sound.patterns = { bass: 'up-down', lead: 'down' }
+    config.sound.octaves = { bass: 1, pad: 0, lead: 1 }
+    config.synth.lead.reverbMix = 1
+    config.synth.lead.delayFeedback = 1
   }
   if (name === 'dense-hot') config.synth.bass.volume = 12
   if (name === 'dense-extreme') {
@@ -146,5 +153,5 @@ export async function renderAudioCase(name: Probe) {
     tailRatio: Math.sqrt(tailEnergy / initialEnergy),
   }
 }
-Object.assign(window, { audioProbe: renderAudioCase })
+Object.assign(window, { audioProbe: renderAudioCase, transportProbe: renderTransportCase })
 document.querySelector('#ready')!.textContent = 'Ready'

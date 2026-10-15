@@ -135,10 +135,10 @@ describe('GitGroove', () => {
     cy.contains('.playback-state', 'Playing').should('be.visible')
     cy.contains('a', 'Glossary').click()
     cy.contains('a', 'Studio').click()
-    cy.contains('.playback-state', 'Paused').should('be.visible')
+    cy.contains('.playback-state', 'Playing').should('be.visible')
     cy.get('[aria-label="Stop and return to section start"]').click()
     cy.contains('.playback-state', 'Ready to play').should('be.visible')
-    cy.get('#sequence-length').select('8')
+    cy.get('.length-presets [aria-label="8 weeks"]').click()
     cy.viewport(1280, 800)
     cy.scrollTo('top')
     cy.get('[aria-label="Play sequence"]').then((button) => {
@@ -197,6 +197,8 @@ describe('GitGroove', () => {
     cy.get('.playhead').then((head) => {
       const position = parseFloat(head[0].style.left)
       cy.get('[role="radio"][aria-label="F# major"]').click()
+      cy.get('[aria-label="bass arpeggio pattern"]').select('up-down')
+      cy.get('[aria-label="lead arpeggio pattern"]').select('down')
       for (const [voice, octave] of [
         ['bass', '-1'],
         ['pad', '1'],
@@ -228,7 +230,7 @@ describe('GitGroove', () => {
     cy.viewport(1280, 900)
     cy.scrollTo('top')
     cy.screenshot('live-transposition', { capture: 'fullPage' })
-    cy.get('#sequence-length').select('4')
+    cy.get('.length-presets [aria-label="4 weeks"]').click()
     cy.contains('.playback-state', 'Ready to play').should('be.visible')
   })
 
@@ -252,6 +254,8 @@ describe('GitGroove', () => {
     cy.get('[aria-label="Bass waveform"]').select('sawtooth')
     cy.get('[aria-label="bass octave"]').select('-1')
     cy.get('[aria-label="lead octave"]').select('1')
+    cy.get('[aria-label="bass arpeggio pattern"]').select('down')
+    cy.get('[aria-label="lead arpeggio pattern"]').select('up-down')
     cy.get('[aria-label="Tempo"]').invoke('val', 147).trigger('input')
     cy.get('[aria-label="Lead focus"]').invoke('val', 45).trigger('input')
     cy.get('[aria-label="Mute bass"]').click()
@@ -285,6 +289,8 @@ describe('GitGroove', () => {
     cy.get('[aria-label="Bass waveform"]').should('have.value', 'sawtooth')
     cy.get('[aria-label="bass octave"]').should('have.value', '-1')
     cy.get('[aria-label="lead octave"]').should('have.value', '1')
+    cy.get('[aria-label="bass arpeggio pattern"]').should('have.value', 'down')
+    cy.get('[aria-label="lead arpeggio pattern"]').should('have.value', 'up-down')
     cy.get('[role="radio"][aria-label="F# major"]').should('have.attr', 'aria-checked', 'true')
     cy.contains('.bpm-control', '147 BPM').should('be.visible')
     cy.get('[aria-label="Lead focus"]').should('have.value', '45')
@@ -300,6 +306,8 @@ describe('GitGroove', () => {
     cy.get('[aria-label="Bass waveform"]').should('have.value', 'square8')
     cy.get('[aria-label="bass octave"]').should('have.value', '0')
     cy.get('[aria-label="lead octave"]').should('have.value', '0')
+    cy.get('[aria-label="bass arpeggio pattern"]').should('have.value', 'original')
+    cy.get('[aria-label="lead arpeggio pattern"]').should('have.value', 'original')
     cy.get('[role="radio"][aria-label="C major"]').should('have.attr', 'aria-checked', 'true')
     cy.get('[aria-label="Solo lead"]').should('have.attr', 'aria-pressed', 'false')
     cy.get('[aria-label="Mute bass"]').should('have.attr', 'aria-pressed', 'false')
@@ -319,6 +327,8 @@ describe('GitGroove', () => {
     cy.visit('/')
     cy.contains('button', 'Try CodeRacon').click()
     cy.get('.week').should('have.length', 1)
+    cy.get('[aria-label="bass arpeggio pattern"]').select('down')
+    cy.get('[aria-label="lead arpeggio pattern"]').select('up')
     cy.get('[aria-label="Tempo"]').invoke('val', 300).trigger('input')
     cy.get('[aria-label="Play sequence"]').click()
     cy.contains('.playback-state', 'Playing').should('be.visible')
