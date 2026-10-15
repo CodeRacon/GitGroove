@@ -54,13 +54,25 @@ const github = useGitHubStore()
     </header>
     <RouterView />
     <footer class="app-footer">
-      <span>A little code. A little music.</span
-      ><span
+      <span>A little code. A little music.</span>
+      <span
         >Built by
         <a href="https://github.com/CodeRacon" target="_blank" rel="noopener noreferrer"
           >CodeRacon</a
         ></span
       >
+      <nav class="legal-links" aria-label="Legal information">
+        <RouterLink
+          :to="{ path: '/', query: { view: 'legal' }, hash: $route.hash }"
+          :aria-current="$route.query.view === 'legal' ? 'page' : undefined"
+          >Imprint</RouterLink
+        >
+        <RouterLink
+          :to="{ path: '/', query: { view: 'privacy' }, hash: $route.hash }"
+          :aria-current="$route.query.view === 'privacy' ? 'page' : undefined"
+          >Privacy</RouterLink
+        >
+      </nav>
     </footer>
   </div>
 </template>
@@ -97,11 +109,11 @@ const github = useGitHubStore()
 .brand-dot {
   color: var(--color-accent);
 }
-nav {
+.app-header nav {
   display: flex;
   gap: 8px;
 }
-nav a {
+.app-header nav a {
   display: flex;
   align-items: center;
   min-height: 44px;
@@ -111,20 +123,33 @@ nav a {
   text-decoration: none;
   font-size: 0.85rem;
 }
-nav a:hover,
-nav a.active {
+.app-header nav a:hover,
+.app-header nav a.active {
   background: var(--color-surface-raised);
   color: var(--color-text);
 }
 .app-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
   padding: 24px 0;
   border-top: 1px solid var(--color-border);
   color: var(--color-muted);
   font-size: 0.75rem;
+}
+.legal-links {
+  display: flex;
+  gap: 16px;
+}
+.legal-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.legal-links a[aria-current='page'] {
+  color: var(--color-text);
 }
 .skip-link {
   position: fixed;
@@ -151,10 +176,10 @@ nav a.active {
   .brand {
     font-size: 1.2rem;
   }
-  nav {
+  .app-header nav {
     gap: 0;
   }
-  nav a {
+  .app-header nav a {
     padding: 6px 8px;
     font-size: 0.75rem;
   }

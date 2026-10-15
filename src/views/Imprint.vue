@@ -19,7 +19,7 @@ export default {
         I'm Micha, frontend developer, music enthusiast... and interested in a lot of things, to say
         the least.
         <br />
-        Sound generation is one of those, analogue or <i>synthetic</i> - it has interested me all my
+        Sound generation is one of those, analog or <i>synthetic</i> - it has interested me all my
         life, in one way or another.
       </p>
 
@@ -50,7 +50,7 @@ export default {
 
       <br />
       <p>Take care!</p>
-      <p>Mike</p>
+      <p>Micha</p>
 
       <hr />
 
@@ -146,14 +146,23 @@ export default {
       <p>
         GitGroove uses profile names, dates and daily contribution counts to create its music,
         rather than repository or commit contents. You do not need to sign in to GitHub. Profile
-        requests pass through a server endpoint, which keeps the API token on the server and caches
-        successful calendar responses for five minutes, separately for each profile and period.
-        Available history follows GitHub’s contribution visibility rules.
+        requests pass through a server endpoint, which keeps the API token on the server without
+        saving calendar responses in a server-side file cache. The browser reuses successful
+        responses from memory for five minutes, separately for each profile and period. Available
+        history follows GitHub’s contribution visibility rules.
       </p>
       <p>
         Shared links contain the captured profile and calendar alongside the sound settings; anyone
-        with the link can open that snapshot. WAV files are rendered locally. The glossary remembers
-        expanded terms in your browser's local storage.
+        with the link can open that snapshot. WAV files are rendered locally. Glossary expansion
+        states stay in memory only while the view is open. Read the
+        <RouterLink :to="{ path: '/', query: { view: 'privacy' }, hash: $route.hash }"
+          >privacy policy</RouterLink
+        >
+        for details about hosting, data processing and your rights. Provider information is
+        available in the
+        <RouterLink :to="{ path: '/', query: { view: 'legal' }, hash: $route.hash }"
+          >imprint</RouterLink
+        >.
       </p>
 
       <h3>Contact</h3>
