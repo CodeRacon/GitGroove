@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, toRefs } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { ref, computed, watch, toRefs, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useGitHubStore } from '@/stores/github.store'
 import { createScore } from '@/music/score'
 import { useStudio } from '@/audio/studio'
@@ -12,6 +12,9 @@ import YearSelector from '@/components/sequencer/YearSelector.vue'
 import BarSelector from '@/components/sequencer/BarSelector.vue'
 import BracketSelector from '@/components/sequencer/BracketSelector.vue'
 import PlayPauseButton from '@/components/controls/PlayPauseButton.vue'
+import MiniTransport from '@/components/controls/MiniTransport.vue'
+import { usePlaybackShortcut } from '@/composables/usePlaybackShortcut'
+import { useTransportVisibility } from '@/composables/useTransportVisibility'
 import Playhead from '@/components/sequencer/Playhead.vue'
 import BPMControl from '@/components/controls/BPMControl.vue'
 import BassSynthPanel from '@/components/controls/synth/BassSynthPanel.vue'
@@ -29,6 +32,8 @@ const { status, bpm, week: currentWeek, day: currentDay, progress } = session
 const username = ref('')
 const playbackError = ref('')
 const audioStarting = ref(false)
+const transportControls = ref<HTMLElement | null>(null)
+const transportVisible = useTransportVisibility(transportControls)
 const { weekCount: selectedBars, startWeek: startBar } = toRefs(state.selection)
 const snapshotLoaded = ref(false)
 const snapshotError = ref('')
@@ -44,6 +49,12 @@ const playbackDisabled = computed(
     githubStore.loading ||
     githubStore.periodLoading ||
     snapshotLoading.value,
+)
+usePlaybackShortcut(
+  () => !playbackDisabled.value,
+  () => {
+    void handlePlayback(status.value !== 'playing')
+  },
 )
 const captureSound = () =>
   studio.snapshot(githubStore.username, calendar.value!, githubStore.sourceYear)
@@ -93,14 +104,6 @@ function formatDate(date: string) {
   return dateFormat.format(new Date(date))
 }
 
-watch(
-  () => route.query.view,
-  (view) => {
-    if (view) session.pause()
-  },
-  { immediate: true },
-)
-onBeforeRouteLeave(() => session.pause())
 watch(
   () => [
     state.sound.patterns.bass,
@@ -230,6 +233,16 @@ async function handlePlayback(playing: boolean) {
     audioStarting.value = false
   }
 }
+async function showStudio() {
+  await router.push({ path: '/', hash: route.hash })
+  await nextTick()
+  // Let the router finish its view-change scroll before revealing the transport.
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  transportControls.value?.scrollIntoView({ block: 'center' })
+  transportControls.value
+    ?.querySelector<HTMLButtonElement>('button')
+    ?.focus({ preventScroll: true })
+}
 </script>
 
 <template>
@@ -297,7 +310,7 @@ async function handlePlayback(playing: boolean) {
             Try CodeRacon <span aria-hidden="true">→</span>
           </button>
         </form>
-        <p id="profile-hint" class="hint">
+        <p id="profile-hint" class="hint" :class="{ 'sr-only': hasWeeks }">
           No GitHub account needed. Try the creator’s profile, or enter any public GitHub username.
         </p>
         <div id="profile-feedback" class="profile-feedback" aria-live="polite" aria-atomic="true">
@@ -449,26 +462,31 @@ async function handlePlayback(playing: boolean) {
         />
 
         <div class="transport">
-          <PlayPauseButton
-            :is-playing="status === 'playing'"
-            :disabled="playbackDisabled"
-            @play="handlePlayback(true)"
-            @pause="handlePlayback(false)"
-            @stop="session.stop()"
-          />
-          <div class="playback-state" role="status">
-            <span class="state-dot" :class="{ playing: status === 'playing' }"></span
-            >{{
-              githubStore.periodLoading
-                ? 'Loading calendar…'
-                : audioStarting
-                ? 'Starting audio…'
-                : status === 'playing'
-                  ? 'Playing'
-                  : status === 'paused'
-                    ? 'Paused'
-                    : 'Ready to play'
-            }}
+          <div ref="transportControls" class="primary-transport-controls">
+            <PlayPauseButton
+              :is-playing="status === 'playing'"
+              :disabled="playbackDisabled"
+              @play="handlePlayback(true)"
+              @pause="handlePlayback(false)"
+              @stop="session.stop()"
+            />
+          </div>
+          <div class="playback-state-stack">
+            <div class="playback-state" role="status">
+              <span class="state-dot" :class="{ playing: status === 'playing' }"></span
+              >{{
+                githubStore.periodLoading
+                  ? 'Loading calendar…'
+                  : audioStarting
+                    ? 'Starting audio…'
+                    : status === 'playing'
+                      ? 'Playing'
+                      : status === 'paused'
+                        ? 'Paused'
+                        : 'Ready to play'
+              }}
+            </div>
+            <p class="shortcut-hint"><kbd>Space</kbd> Play/Pause</p>
           </div>
           <BPMControl :bpm="bpm" @update:bpm="(value) => session.setBpm(value)" />
         </div>
@@ -547,6 +565,20 @@ async function handlePlayback(playing: boolean) {
     <p v-else class="hint">
       This view is unavailable. <RouterLink to="/">Return to the studio</RouterLink>.
     </p>
+    <MiniTransport
+      v-if="hasWeeks"
+      :visible="!transportVisible"
+      :profile="githubStore.username"
+      :bars="selectedBars"
+      :status="status"
+      :disabled="playbackDisabled"
+      :starting="audioStarting"
+      :loading="githubStore.periodLoading"
+      :error="playbackError"
+      @play="handlePlayback(true)"
+      @pause="handlePlayback(false)"
+      @studio="showStudio"
+    />
   </main>
 </template>
 
@@ -573,7 +605,11 @@ h1 span {
   color: var(--color-accent);
 }
 .grid-view.has-calendar {
-  padding-top: 24px;
+  padding-top: 16px;
+}
+.has-calendar .profile-panel {
+  padding: 14px 24px;
+  margin-bottom: 20px;
 }
 .calendar-heading {
   font-size: 1.35rem;
@@ -721,7 +757,7 @@ h2 {
   align-items: end;
   justify-content: space-between;
   gap: 20px;
-  margin: 24px 0 8px;
+  margin: 16px 0 8px;
 }
 .selection-summary {
   display: flex;
@@ -834,6 +870,21 @@ h2 {
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
+}
+.primary-transport-controls {
+  display: flex;
+}
+.shortcut-hint {
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  margin-top: 3px;
+}
+.shortcut-hint kbd {
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-right: 3px;
 }
 .playback-state {
   display: flex;
