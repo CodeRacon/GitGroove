@@ -1,21 +1,118 @@
 @import './base.css';
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
+  width: 100%;
 }
-
-body {
+.eyebrow {
+  color: var(--color-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.primary-button,
+.secondary-button {
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-weight: 650;
+}
+.primary-button {
+  background: var(--color-accent);
+  color: #152010;
+  border-color: var(--color-accent);
+}
+.primary-button:hover:not(:disabled) {
+  background: #c1ffa1;
+}
+.secondary-button {
+  background: transparent;
+  color: var(--color-text);
+}
+.secondary-button:hover:not(:disabled) {
+  background: var(--color-surface-raised);
+  border-color: #6a8270;
+}
+.synth-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 0;
+}
+.panel-header {
   display: flex;
-  place-items: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 20px;
 }
-
-a,
-.green {
-  text-decoration: none;
-  color: #00bd7e;
-  transition: 0.4s;
-  padding: 3px;
+.panel-header h3 {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+.voice-description {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+.control-buttons {
+  display: flex;
+  gap: 6px;
+}
+.control-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.control-btn:hover {
+  color: var(--color-text);
+  border-color: #6a8270;
+}
+.control-btn.active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.controls-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.volume-section,
+.knob-section.effects,
+.knob-section.filter {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.knob-section {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 4px;
+  align-items: start;
+}
+.knob-section.filter,
+.pad-synth-panel .knob-section.effects {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.control-section-title {
+  grid-column: 1 / -1;
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.switch-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
 }

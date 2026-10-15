@@ -60,23 +60,32 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
 </script>
 
 <template>
-  <div class="pad-synth-panel">
+  <div class="pad-synth-panel synth-panel" role="group" aria-label="Pad synthesizer">
     <div class="panel-header">
-      <h3>Pad Synth</h3>
+      <div>
+        <h3>Pad</h3>
+        <p class="voice-description">Atmospheric chords</p>
+      </div>
       <div class="control-buttons">
         <button
           class="control-btn"
-          :class="{ active: mix.solo === 'pad' }"
-          @click="() => toggleSolo('pad')"
+          type="button"
+          :class="{ active: mix.isMuted('pad') }"
+          :aria-pressed="mix.isMuted('pad')"
+          aria-label="Mute pad"
+          @click="toggleMute('pad')"
         >
-          S
+          Mute
         </button>
         <button
           class="control-btn"
-          :class="{ active: mix.isMuted('pad') }"
-          @click="() => toggleMute('pad')"
+          type="button"
+          :class="{ active: mix.solo === 'pad' }"
+          :aria-pressed="mix.solo === 'pad'"
+          aria-label="Solo pad"
+          @click="toggleSolo('pad')"
         >
-          M
+          Solo
         </button>
       </div>
     </div>
@@ -95,12 +104,14 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
       </div>
 
       <div class="knob-section effects">
+        <span class="control-section-title">Tone & effects</span>
         <RotaryKnob
           v-model="padParams.cutoff"
           :min="20"
           :max="2000"
           :step="10"
           label="Cutoff"
+          unit="Hz"
           @update:modelValue="updateCutoff"
         />
 
@@ -115,21 +126,24 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
       </div>
 
       <div class="knob-section envelope">
+        <span class="control-section-title">Envelope</span>
         <RotaryKnob
           v-model="envelopeParams.attack"
           :min="0.1"
           :max="1"
           :step="0.05"
           :label="isModulation ? 'Mod Attack' : 'Attack'"
+          unit="s"
           @update:modelValue="(value) => updateEnvelopeParam('attack', value)"
         />
 
         <RotaryKnob
           v-model="envelopeParams.decay"
           :min="0.1"
-          :max="1"
+          :max="3"
           :step="0.05"
           :label="isModulation ? 'Mod Decay' : 'Decay'"
+          unit="s"
           @update:modelValue="(value) => updateEnvelopeParam('decay', value)"
         />
 
@@ -148,6 +162,7 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
           :max="5"
           :step="0.05"
           :label="isModulation ? 'Mod Release' : 'Release'"
+          unit="s"
           @update:modelValue="(value) => updateEnvelopeParam('release', value)"
         />
       </div>
@@ -169,101 +184,3 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
     </div>
   </div>
 </template>
-
-<style scoped>
-.pad-synth-panel {
-  background: #242424;
-  border-radius: 12px;
-  padding: 16px;
-  width: 12rem;
-  height: fit-content;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-}
-
-.control-buttons {
-  display: flex;
-  gap: 4px;
-}
-
-.control-btn {
-  width: 24px;
-  height: 20px;
-  background: #2a2a2a;
-  border: 1px solid #3333338d;
-  border-radius: 4px;
-  color: #888;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.control-btn:hover {
-  background: #333;
-  color: #fff;
-}
-
-.control-btn.active {
-  color: #1a1a1a;
-  background: #4caf50;
-  box-shadow: 0 0 4px #4caf50;
-}
-
-.panel-header h3 {
-  margin: 0;
-  color: #4caf50;
-  font-size: 1.2em;
-  font-weight: 500;
-}
-
-.controls-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.knob-section {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.switch-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 0 0.5rem;
-}
-
-.left-align {
-  align-items: flex-start !important;
-}
-
-.right-align {
-  align-items: flex-end !important;
-}
-
-.knob-section.effects,
-.knob-section.envelope {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #333;
-}
-
-.volume-section {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #333;
-}
-</style>

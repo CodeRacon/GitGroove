@@ -1,81 +1,64 @@
 <script setup lang="ts">
-interface Props {
-  modelValue: boolean
-  label?: string
-}
-
-/**
- * Defines the props for the ToggleSwitch component.
- *
- * @property {boolean} modelValue - The current value of the toggle switch.
- * @property {string} [label] - An optional label for the toggle switch.
- */
-const props = withDefaults(defineProps<Props>(), {
-  label: '',
-})
-
-/**
- * Emits an event to update the `modelValue` prop.
- */
-const emit = defineEmits(['update:modelValue'])
-
-/**
- * Toggles the value of the `modelValue` prop and emits an event to update it.
- */
-const toggle = () => {
-  emit('update:modelValue', !props.modelValue)
-}
+withDefaults(defineProps<{ modelValue: boolean; label?: string }>(), { label: '' })
+const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 </script>
 
 <template>
-  <div class="toggle-switch">
-    <div class="label">{{ label }}</div>
-    <div class="switch" :class="{ active: modelValue }" @click="toggle">
-      <div class="handle"></div>
-    </div>
-  </div>
+  <button
+    class="toggle-switch"
+    type="button"
+    role="switch"
+    :aria-checked="modelValue"
+    :aria-label="label"
+    @click="emit('update:modelValue', !modelValue)"
+  >
+    <span class="switch" :class="{ active: modelValue }" aria-hidden="true"
+      ><span class="handle"></span
+    ></span>
+    <span class="label">{{ label }}</span>
+  </button>
 </template>
 
 <style scoped>
 .toggle-switch {
-  display: flex;
-  flex-direction: column-reverse;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.75rem;
 }
-
 .switch {
-  width: 40px;
+  width: 36px;
   height: 20px;
-  background: #1a1a1a;
-  border-radius: 10px;
+  background: #33473a;
+  border: 1px solid #597361;
+  border-radius: 12px;
   position: relative;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  flex-shrink: 0;
 }
-
 .switch.active {
-  background: #4caf50;
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
 }
-
 .handle {
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(145deg, #2a2a2a, #323232);
+  width: 12px;
+  height: 12px;
+  background: #a6b7ac;
   border-radius: 50%;
   position: absolute;
-  top: 2px;
-  left: 2px;
-  transition: transform 0.2s;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.15s;
 }
-
 .switch.active .handle {
-  transform: translateX(20px);
+  transform: translateX(16px);
+  background: var(--color-accent);
 }
-
-.label {
-  font-size: 12px;
-  color: #888;
-  cursor: default;
+.toggle-switch:hover {
+  color: var(--color-text);
 }
 </style>

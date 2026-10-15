@@ -19,8 +19,11 @@ export default {
       </p>
 
       <p>
-        I came across <a href="https://eirikbrandal.com/" target="blank">Eirik Brandal</a> by
-        chance, which left quite a lasting impression on me.
+        I came across
+        <a href="https://eirikbrandal.com/" target="_blank" rel="noopener noreferrer"
+          >Eirik Brandal</a
+        >
+        by chance, which left quite a lasting impression on me.
         <br />
         Eirik is an norwegian artist and composer who creates fascinating, living sound-sculptures.
         Electronic components, perseverance, precision, a steady hand and lots of creativity. That
@@ -84,9 +87,14 @@ export default {
         links below:
       </p>
       <div class="links">
-        <a href="https://www.michael-buschmann.dev" target="blank">www.michael-buschmann.dev</a>
-        <a href="https://github.com/CodeRacon" target="blank">GitHub </a>
-        <a href="https://www.linkedin.com/in/michael-buschmann-front-end-dev/" target="blank"
+        <a href="https://www.michael-buschmann.dev" target="_blank" rel="noopener noreferrer"
+          >www.michael-buschmann.dev</a
+        >
+        <a href="https://github.com/CodeRacon" target="_blank" rel="noopener noreferrer">GitHub </a>
+        <a
+          href="https://www.linkedin.com/in/michael-buschmann-front-end-dev/"
+          target="_blank"
+          rel="noopener noreferrer"
           >LinkedIn
         </a>
       </div>
@@ -96,7 +104,7 @@ export default {
 
 <style scoped>
 .imprint {
-  padding: 2rem;
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -113,12 +121,12 @@ export default {
 
 h3 {
   margin-top: 2rem;
-  color: #4caf50;
+  color: var(--color-accent);
 }
 
 p {
   margin: 1rem 0;
-  color: #cad9cb;
+  color: var(--color-muted);
 }
 
 a {
@@ -127,7 +135,7 @@ a {
 }
 
 a:hover {
-  color: #7dede0;
+  color: var(--color-text);
 }
 
 span {
@@ -136,6 +144,6 @@ span {
 }
 
 li {
-  color: #cad9cb;
+  color: var(--color-muted);
 }
 </style>
