@@ -16,6 +16,7 @@ export interface StudioSnapshot extends StudioConfig {
   mappingVersion: number
   soundVersion: 2
   profile: string
+  sourceYear: number | null
   calendar: ContributionResponse
   bpm: number
   mix: MixSnapshot
@@ -140,6 +141,17 @@ export function snapshotFromData(input: unknown): StudioSnapshot {
   const octaves = object(sound.octaves)
   const patterns =
     data.mappingVersion === 2 ? { bass: 'original', lead: 'original' } : object(sound.patterns)
+  const sourceYear =
+    data.sourceYear === undefined || data.sourceYear === null
+      ? null
+      : number(data.sourceYear, 1, 9999, true)
+  if (
+    sourceYear !== null &&
+    calendar.weeks
+      .flatMap((week) => week.days)
+      .some((day) => !day.outsideRange && Number(day.date.slice(0, 4)) !== sourceYear)
+  )
+    throw new Error('Snapshot year does not match its calendar.')
   const rawMix = object(data.mix)
   const muted = object(rawMix.muted)
   const view = object(data.view)
@@ -149,6 +161,7 @@ export function snapshotFromData(input: unknown): StudioSnapshot {
     // Version 1 retains all controls and notes, using the corrected version 2 output stage.
     soundVersion: SOUND_VERSION,
     profile: data.profile,
+    sourceYear,
     calendar,
     selection: { startWeek, weekCount },
     synth,
@@ -181,6 +194,7 @@ export function captureSnapshot(
   calendar: ContributionResponse,
   bpm: number,
   mix: MixSnapshot,
+  sourceYear: number | null = null,
 ): StudioSnapshot {
   // Validation also makes a detached copy: later edits cannot change a captured sound.
   return snapshotFromData(
@@ -190,6 +204,7 @@ export function captureSnapshot(
       mappingVersion: SCORE_MAPPING_VERSION,
       soundVersion: SOUND_VERSION,
       profile,
+      sourceYear,
       calendar,
       bpm,
       mix,

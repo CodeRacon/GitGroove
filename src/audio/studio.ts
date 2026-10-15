@@ -42,8 +42,12 @@ function updateSynthParam<T extends Voice, K extends keyof Params[T]>(
   adapter.updateMix()
 }
 
-function snapshot(profile: string, calendar: ContributionResponse): StudioSnapshot {
-  return captureSnapshot(state, profile, calendar, session.bpm.value, mix.snapshot())
+function snapshot(
+  profile: string,
+  calendar: ContributionResponse,
+  sourceYear: number | null = null,
+): StudioSnapshot {
+  return captureSnapshot(state, profile, calendar, session.bpm.value, mix.snapshot(), sourceYear)
 }
 
 function restore(snapshot: StudioSnapshot): void {

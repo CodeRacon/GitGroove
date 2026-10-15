@@ -21,6 +21,19 @@ if (!preg_match('/^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/iD', $username)) {
     respond(400, 'Invalid GitHub username');
 }
 
+$yearValue = $_GET['year'] ?? null;
+$currentYear = (int) gmdate('Y');
+if ($yearValue !== null && (!is_string($yearValue) || !preg_match('/^\d{4}$/D', $yearValue)
+    || (int) $yearValue < 1 || (int) $yearValue > $currentYear)) {
+    respond(400, 'Invalid contribution year');
+}
+$year = $yearValue === null ? null : (int) $yearValue;
+$variables = ['username' => $username];
+if ($year !== null) {
+    $variables['from'] = $yearValue . '-01-01T00:00:00Z';
+    $variables['to'] = $year === $currentYear ? gmdate('Y-m-d\TH:i:s\Z') : $yearValue . '-12-31T23:59:59Z';
+}
+
 $token = getenv('GITHUB_TOKEN');
 if ($token === false || $token === '') {
     // A subdomain may live inside another site's public_html directory.
@@ -50,7 +63,7 @@ if (!is_string($token) || $token === '' || preg_match('/[\r\n]/', $token)) {
 if (!function_exists('curl_init')) respond(503, 'PHP cURL is unavailable');
 
 $cacheDirectory = sys_get_temp_dir() . '/gitgroove-calendar-cache';
-$cachePath = $cacheDirectory . '/' . hash('sha256', strtolower($username)) . '.json';
+$cachePath = $cacheDirectory . '/' . hash('sha256', strtolower($username) . ':' . ($year ?? 'rolling')) . '.json';
 if (is_file($cachePath) && filemtime($cachePath) > time() - 300) {
     $cached = file_get_contents($cachePath);
     if ($cached !== false) {
@@ -59,8 +72,8 @@ if (is_file($cachePath) && filemtime($cachePath) > time() - 300) {
     }
 }
 
-$query = 'query($username: String!) { user(login: $username) { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { contributionCount date } } } } } }';
-$request = json_encode(['query' => $query, 'variables' => ['username' => $username]], JSON_THROW_ON_ERROR);
+$query = 'query($username: String!, $from: DateTime, $to: DateTime) { user(login: $username) { contributionsCollection(from: $from, to: $to) { contributionYears contributionCalendar { totalContributions weeks { contributionDays { contributionCount date } } } } } }';
+$request = json_encode(['query' => $query, 'variables' => $variables], JSON_THROW_ON_ERROR);
 $handle = curl_init('https://api.github.com/graphql');
 if ($handle === false) respond(503, 'GitHub connection unavailable');
 curl_setopt_array($handle, [
@@ -106,6 +119,7 @@ $calendar = $result['data']['user']['contributionsCollection']['contributionCale
 if (!is_array($calendar) || !isset($calendar['weeks'], $calendar['totalContributions'])) {
     respond(502, 'Invalid GitHub calendar');
 }
+$calendar['contributionYears'] = $result['data']['user']['contributionsCollection']['contributionYears'] ?? [];
 $json = json_encode($calendar, JSON_THROW_ON_ERROR);
 if (!is_dir($cacheDirectory)) @mkdir($cacheDirectory, 0700, true);
 if (is_dir($cacheDirectory)) @file_put_contents($cachePath, $json, LOCK_EX);

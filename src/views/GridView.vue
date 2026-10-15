@@ -8,6 +8,7 @@ import KeyControl from '@/components/controls/KeyControl.vue'
 import StudioActions from '@/components/controls/StudioActions.vue'
 import Fader from '@/components/controls/common/Fader.vue'
 import { decodeSnapshot } from '@/studio/share'
+import YearSelector from '@/components/sequencer/YearSelector.vue'
 import BarSelector from '@/components/sequencer/BarSelector.vue'
 import BracketSelector from '@/components/sequencer/BracketSelector.vue'
 import PlayPauseButton from '@/components/controls/PlayPauseButton.vue'
@@ -33,8 +34,19 @@ const snapshotLoaded = ref(false)
 const snapshotError = ref('')
 const snapshotLoading = ref(false)
 const calendar = computed(() => githubStore.contributions)
+const periodTarget = ref<number | null>(null)
+let periodRevision = 0
 const hasWeeks = computed(() => !!calendar.value?.weeks.length)
-const captureSound = () => studio.snapshot(githubStore.username, calendar.value!)
+const playbackDisabled = computed(
+  () =>
+    !hasWeeks.value ||
+    audioStarting.value ||
+    githubStore.loading ||
+    githubStore.periodLoading ||
+    snapshotLoading.value,
+)
+const captureSound = () =>
+  studio.snapshot(githubStore.username, calendar.value!, githubStore.sourceYear)
 const loopSeconds = computed(() => (selectedBars.value * 4 * 60) / bpm.value)
 const timelineWidth = computed(() => (calendar.value?.weeks.length ?? 0) * 16 - 4)
 const selectedDays = computed(
@@ -63,7 +75,13 @@ const monthLabels = computed(
   () =>
     calendar.value?.weeks.map((week, index, weeks) => {
       const date = week.days.find((day) => !day.outsideRange)?.date ?? week.firstDay
-      const previous = index > 0 ? weeks[index - 1].firstDay.slice(0, 7) : ''
+      const previous =
+        index > 0
+          ? (
+              weeks[index - 1].days.find((day) => !day.outsideRange)?.date ??
+              weeks[index - 1].firstDay
+            ).slice(0, 7)
+          : ''
       return date.slice(0, 7) !== previous
         ? new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(new Date(date))
         : ''
@@ -92,7 +110,9 @@ watch(
     state.sound.octaves.pad,
     state.sound.octaves.lead,
   ],
-  () => loadScore(true),
+  () => {
+    loadScore(true)
+  },
 )
 let snapshotRequest = 0
 watch(
@@ -103,6 +123,8 @@ watch(
       snapshotLoading.value = false
       return
     }
+    periodRevision++
+    githubStore.cancelPeriod()
     snapshotError.value = ''
     snapshotLoading.value = true
     session.pause()
@@ -110,7 +132,7 @@ watch(
       const saved = await decodeSnapshot(hash.slice(7))
       if (request !== snapshotRequest) return
       studio.restore(saved)
-      githubStore.restoreCalendar(saved.calendar, saved.profile)
+      githubStore.restoreCalendar(saved.calendar, saved.profile, saved.sourceYear)
       username.value = saved.profile
       snapshotLoaded.value = true
       loadScore()
@@ -144,6 +166,7 @@ function loadScore(retune = false) {
 async function loadContributions() {
   if (!username.value.trim() || githubStore.loading || audioStarting.value) return
   snapshotRequest++
+  periodRevision++
   if (route.hash.startsWith('#sound=')) void router.replace({ hash: '' })
   snapshotLoading.value = false
   snapshotLoaded.value = false
@@ -153,6 +176,25 @@ async function loadContributions() {
   await githubStore.fetchContributions(username.value)
   startBar.value = 0
   loadScore()
+}
+
+async function loadPeriod(year: number | null) {
+  if (audioStarting.value || githubStore.loading || snapshotLoading.value) return
+  const revision = ++periodRevision
+  periodTarget.value = year
+  if (year === githubStore.sourceYear && !githubStore.frozen) {
+    githubStore.cancelPeriod()
+    return
+  }
+  session.stop()
+  playbackError.value = ''
+  const result = await githubStore.preparePeriod(year)
+  if (revision !== periodRevision || !result) return
+  githubStore.commitPeriod(result, year)
+  snapshotLoaded.value = false
+  if (route.hash.startsWith('#sound=')) void router.replace({ hash: '' })
+  if (result.calendar.weeks.length) loadScore()
+  else session.clear()
 }
 
 function loadExample() {
@@ -177,7 +219,7 @@ async function handlePlayback(playing: boolean) {
     session.pause()
     return
   }
-  if (audioStarting.value) return
+  if (playbackDisabled.value) return
   playbackError.value = ''
   audioStarting.value = true
   try {
@@ -394,10 +436,22 @@ async function handlePlayback(playing: boolean) {
           >
         </div>
 
+        <YearSelector
+          v-if="githubStore.years.length || githubStore.frozen"
+          :years="githubStore.years"
+          :selected="githubStore.sourceYear"
+          :frozen="githubStore.frozen"
+          :busy="githubStore.periodLoading"
+          :target="periodTarget"
+          :error="githubStore.periodError"
+          :disabled="audioStarting || githubStore.loading"
+          @select="loadPeriod"
+        />
+
         <div class="transport">
           <PlayPauseButton
             :is-playing="status === 'playing'"
-            :disabled="audioStarting"
+            :disabled="playbackDisabled"
             @play="handlePlayback(true)"
             @pause="handlePlayback(false)"
             @stop="session.stop()"
@@ -405,7 +459,9 @@ async function handlePlayback(playing: boolean) {
           <div class="playback-state" role="status">
             <span class="state-dot" :class="{ playing: status === 'playing' }"></span
             >{{
-              audioStarting
+              githubStore.periodLoading
+                ? 'Loading calendar…'
+                : audioStarting
                 ? 'Starting audio…'
                 : status === 'playing'
                   ? 'Playing'

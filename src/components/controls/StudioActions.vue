@@ -100,7 +100,7 @@ async function downloadWav() {
     const url = URL.createObjectURL(result.blob)
     downloadUrl(
       url,
-      `gitgroove-${saved.profile}-weeks-${saved.selection.startWeek + 1}-${saved.selection.startWeek + saved.selection.weekCount}-${saved.bpm}bpm-${saved.sound.key.replace('#', 'sharp')}-${chosenMode}.wav`,
+      `gitgroove-${saved.profile}${saved.sourceYear === null ? '' : `-${saved.sourceYear}`}-weeks-${saved.selection.startWeek + 1}-${saved.selection.startWeek + saved.selection.weekCount}-${saved.bpm}bpm-${saved.sound.key.replace('#', 'sharp')}-${chosenMode}.wav`,
     )
     setTimeout(() => URL.revokeObjectURL(url), 30_000)
     exportStatus.value = `WAV downloaded · ${formatDuration(result.duration)}${result.normalized ? ' · peak level reduced to prevent clipping' : ''}.`
@@ -165,8 +165,8 @@ watch(
       </button>
     </div>
     <p class="hint">
-      This link includes the frozen contribution calendar, selection, tempo and all sound settings.
-      Your friend can open it and press Play.
+      This link includes the frozen contribution calendar, year, selection, patterns, tempo and all
+      sound settings. Your friend can open it and press Play.
     </p>
     <p v-if="sharing" class="dialog-feedback" role="status">Creating your snapshot…</p>
     <p v-if="shareError" class="dialog-error" role="alert">{{ shareError }}</p>
