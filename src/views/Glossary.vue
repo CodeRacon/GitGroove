@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
 /**
  * Represents a single entry in the application's glossary.
@@ -18,31 +18,13 @@ interface GlossaryEntry {
 
 /**
  * Reactive state that keeps track of the currently open glossary entries.
- * This state is used to persist the open/closed state of the glossary entries across page loads.
+ * Kept only in memory while this view is mounted.
  */
 const openEntries = ref<Set<string>>(new Set())
 
 /**
- * Initializes the `openEntries` state by loading the previously saved open glossary entries from local storage.
- * This ensures that the open/closed state of the glossary entries is persisted across page loads.
- */
-onMounted(() => {
-  const saved = localStorage.getItem('glossaryOpenEntries')
-  if (saved) {
-    try {
-      const entries: unknown = JSON.parse(saved)
-      if (Array.isArray(entries) && entries.every((entry) => typeof entry === 'string'))
-        openEntries.value = new Set(entries)
-    } catch {
-      /* Ignore outdated browser preferences. */
-    }
-  }
-})
-
-/**
  * Toggles the open state of a glossary entry term in the application.
  * If the term is already open, it will be closed. If the term is closed, it will be opened.
- * The open state of the terms is persisted in the browser's local storage.
  *
  * @param term - The term to toggle the open state for.
  */
@@ -52,7 +34,6 @@ const handleTermClick = (term: string) => {
   } else {
     openEntries.value.add(term)
   }
-  localStorage.setItem('glossaryOpenEntries', JSON.stringify([...openEntries.value]))
 }
 
 /** This is a list of glossary entries for the GitGroove application. 

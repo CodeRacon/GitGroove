@@ -5,6 +5,15 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: private, max-age=0');
 header('X-Content-Type-Options: nosniff');
 
+// Older releases kept calendar responses on disk without deleting expired entries.
+// Remove only legacy cache files; new responses are processed in memory per request.
+$legacyCacheDirectory = sys_get_temp_dir() . '/gitgroove-calendar-cache';
+foreach (glob($legacyCacheDirectory . '/*.json') ?: [] as $legacyCacheFile) {
+    if (preg_match('/^[a-f0-9]{64}\.json$/D', basename($legacyCacheFile))) {
+        @unlink($legacyCacheFile);
+    }
+}
+
 function respond(int $status, string $message): never {
     http_response_code($status);
     echo json_encode(['error' => $message], JSON_THROW_ON_ERROR);
@@ -62,16 +71,6 @@ if (!is_string($token) || $token === '' || preg_match('/[\r\n]/', $token)) {
 }
 if (!function_exists('curl_init')) respond(503, 'PHP cURL is unavailable');
 
-$cacheDirectory = sys_get_temp_dir() . '/gitgroove-calendar-cache';
-$cachePath = $cacheDirectory . '/' . hash('sha256', strtolower($username) . ':' . ($year ?? 'rolling')) . '.json';
-if (is_file($cachePath) && filemtime($cachePath) > time() - 300) {
-    $cached = file_get_contents($cachePath);
-    if ($cached !== false) {
-        echo $cached;
-        exit;
-    }
-}
-
 $query = 'query($username: String!, $from: DateTime, $to: DateTime) { user(login: $username) { contributionsCollection(from: $from, to: $to) { contributionYears contributionCalendar { totalContributions weeks { contributionDays { contributionCount date } } } } } }';
 $request = json_encode(['query' => $query, 'variables' => $variables], JSON_THROW_ON_ERROR);
 $handle = curl_init('https://api.github.com/graphql');
@@ -121,6 +120,4 @@ if (!is_array($calendar) || !isset($calendar['weeks'], $calendar['totalContribut
 }
 $calendar['contributionYears'] = $result['data']['user']['contributionsCollection']['contributionYears'] ?? [];
 $json = json_encode($calendar, JSON_THROW_ON_ERROR);
-if (!is_dir($cacheDirectory)) @mkdir($cacheDirectory, 0700, true);
-if (is_dir($cacheDirectory)) @file_put_contents($cachePath, $json, LOCK_EX);
 echo $json;

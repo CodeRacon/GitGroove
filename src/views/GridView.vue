@@ -22,6 +22,8 @@ import PadSynthPanel from '@/components/controls/synth/PadSynthPanel.vue'
 import LeadSynthPanel from '@/components/controls/synth/LeadSynthPanel.vue'
 import Glossary from './Glossary.vue'
 import Imprint from './Imprint.vue'
+import LegalNotice from './LegalNotice.vue'
+import PrivacyPolicy from './PrivacyPolicy.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -562,6 +564,8 @@ async function showStudio() {
     </template>
     <Glossary v-else-if="route.query.view === 'glossary'" />
     <Imprint v-else-if="route.query.view === 'imprint'" />
+    <LegalNotice v-else-if="route.query.view === 'legal'" />
+    <PrivacyPolicy v-else-if="route.query.view === 'privacy'" />
     <p v-else class="hint">
       This view is unavailable. <RouterLink to="/">Return to the studio</RouterLink>.
     </p>

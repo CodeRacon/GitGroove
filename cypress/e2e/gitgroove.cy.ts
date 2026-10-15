@@ -37,13 +37,14 @@ describe('GitGroove', () => {
     cy.contains('.content', 'it does not turn FM on or off').should('be.visible')
     cy.contains('.content', 'without fetching GitHub again').should('be.visible')
     cy.reload()
-    cy.contains('button', /^Snapshot/).should('have.attr', 'aria-expanded', 'true')
+    cy.contains('button', /^Snapshot/).should('have.attr', 'aria-expanded', 'false')
+    cy.contains('button', /^Snapshot/).click()
     cy.document().then((doc) => {
       expect(doc.documentElement.scrollWidth).to.be.at.most(390)
     })
     cy.scrollTo('top')
     cy.window().should((window) => expect(window.scrollY).to.equal(0))
-    // Let restored accordion heights and scrolling paint before Cypress stitches the screenshot.
+    // Let accordion heights and scrolling paint before Cypress stitches the screenshot.
     cy.window().then(
       (window) =>
         new Promise<void>((resolve) => {

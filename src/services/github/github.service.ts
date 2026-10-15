@@ -72,7 +72,7 @@ export class GitHubService {
       )
         throw new Error('Unexpected contribution period.')
       const value = { calendar, years: [...new Set(rawYears as number[])].sort((a, b) => b - a) }
-      // Keep a small browser cache; the server separately caches each profile and period.
+      // Reuse responses in page memory only; the production server does not persist calendars.
       if (this.cache.size >= 40) this.cache.delete(this.cache.keys().next().value!)
       this.cache.set(key, { expires: Date.now() + 300_000, value })
       return value
