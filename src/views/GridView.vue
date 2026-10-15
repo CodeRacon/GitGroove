@@ -85,6 +85,8 @@ watch(
 onBeforeRouteLeave(() => session.pause())
 watch(
   () => [
+    state.sound.patterns.bass,
+    state.sound.patterns.lead,
     state.sound.key,
     state.sound.octaves.bass,
     state.sound.octaves.pad,

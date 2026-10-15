@@ -50,7 +50,10 @@ function restore(snapshot: StudioSnapshot): void {
   session.stop()
   applySynthParams(params, snapshot.synth)
   Object.assign(state.selection, snapshot.selection)
-  Object.assign(state.sound, snapshot.sound, { octaves: { ...snapshot.sound.octaves } })
+  Object.assign(state.sound, snapshot.sound, {
+    octaves: { ...snapshot.sound.octaves },
+    patterns: { ...snapshot.sound.patterns },
+  })
   Object.assign(state.view, snapshot.view)
   session.setBpm(snapshot.bpm)
   mix.restore(snapshot.mix)

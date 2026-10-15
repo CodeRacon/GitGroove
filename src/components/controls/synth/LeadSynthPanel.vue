@@ -11,6 +11,7 @@ import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
 import OctaveControl from '../OctaveControl.vue'
+import PatternControl from '../PatternControl.vue'
 import { useStudio } from '@/audio/studio'
 
 const { state, updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
@@ -64,6 +65,7 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
     <div class="controls-grid">
       <div class="tone-options">
         <OctaveControl voice="lead" v-model="state.sound.octaves.lead" />
+        <PatternControl voice="lead" v-model="state.sound.patterns.lead" />
       </div>
       <div class="volume-section">
         <Fader

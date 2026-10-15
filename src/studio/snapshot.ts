@@ -1,7 +1,7 @@
 import { BASS_WAVEFORMS, defaultSynthParams, SYNTH_RANGES, type SynthParams } from '@/audio/params'
 import { normalizeContributionCalendar, type ContributionResponse } from '@/contributions/calendar'
 import { SCORE_MAPPING_VERSION, type Voice } from '@/music/score'
-import { ROOT_KEYS, type StudioConfig, type Octave } from './state'
+import { ROOT_KEYS, ARPEGGIO_PATTERNS, type StudioConfig, type Octave } from './state'
 
 export const SNAPSHOT_VERSION = 1
 export const SOUND_VERSION = 2
@@ -112,7 +112,7 @@ export function snapshotFromData(input: unknown): StudioSnapshot {
   const data = object(input)
   if (
     data.schemaVersion !== SNAPSHOT_VERSION ||
-    data.mappingVersion !== SCORE_MAPPING_VERSION ||
+    (data.mappingVersion !== 2 && data.mappingVersion !== SCORE_MAPPING_VERSION) ||
     (data.soundVersion !== 1 && data.soundVersion !== SOUND_VERSION)
   )
     throw new Error('This sound uses a snapshot version that GitGroove cannot open.')
@@ -138,6 +138,8 @@ export function snapshotFromData(input: unknown): StudioSnapshot {
   synth.lead.distortion = boolean(object(rawSynth.lead).distortion)
   const sound = object(data.sound)
   const octaves = object(sound.octaves)
+  const patterns =
+    data.mappingVersion === 2 ? { bass: 'original', lead: 'original' } : object(sound.patterns)
   const rawMix = object(data.mix)
   const muted = object(rawMix.muted)
   const view = object(data.view)
@@ -152,6 +154,10 @@ export function snapshotFromData(input: unknown): StudioSnapshot {
     synth,
     sound: {
       key: choice(sound.key, ROOT_KEYS),
+      patterns: {
+        bass: choice(patterns.bass, ARPEGGIO_PATTERNS),
+        lead: choice(patterns.lead, ARPEGGIO_PATTERNS),
+      },
       octaves: Object.fromEntries(
         VOICES.map((voice) => [voice, number(octaves[voice], -1, 1, true) as Octave]),
       ) as Record<Voice, Octave>,

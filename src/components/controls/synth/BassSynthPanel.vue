@@ -10,6 +10,7 @@ import { SYNTH_RANGES, type BassWaveform } from '@/audio/params'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import Fader from '../common/Fader.vue'
 import OctaveControl from '../OctaveControl.vue'
+import PatternControl from '../PatternControl.vue'
 import { useStudio } from '@/audio/studio'
 
 const { state, updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
@@ -78,6 +79,7 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
             <option value="sawtooth">Saw</option>
           </select></label
         ><OctaveControl voice="bass" v-model="state.sound.octaves.bass" />
+        <PatternControl voice="bass" v-model="state.sound.patterns.bass" />
       </div>
       <div class="volume-section">
         <Fader
