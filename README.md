@@ -6,9 +6,9 @@ GitGroove makes a GitHub profile's contribution history audible. A calendar of d
 
 The project combines data visualization, musical mapping and real-time audio in a Vue/TypeScript application. Built by [CodeRacon](https://github.com/CodeRacon) as a playable sound sculpture and a project for the [developer portfolio](https://www.michael-buschmann.dev).
 
-![GitGroove: contribution calendar, playback controls and three synth channels](.github/images/gitgroove-studio.png)
+![GitGroove studio: contribution history, quick loop lengths, root key and three synth channels with arpeggio controls](.github/images/gitgroove-studio.png)
 
-_Studio view with a synthetic test calendar. The contribution counts shown are not actual activity data from CodeRacon's profile._
+_Current studio view with illustrative contribution data, including quieter weeks, gaps and bursts of activity. The counts are synthetic and do not represent CodeRacon's actual GitHub history._
 
 ## Try it
 
