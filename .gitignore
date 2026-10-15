@@ -34,3 +34,8 @@ coverage
 # Other
 docs
 .env
+
+# Local reviews, screenshots and operator-specific working notes
+/review/
+/UI-UX-Review.md
+/deployment/privacy-notes.md

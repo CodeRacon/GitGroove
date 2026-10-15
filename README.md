@@ -1,149 +1,149 @@
 # GitGroove
 
-**GitHub Contribution Grid × interaktives Musikstudio**
+**GitHub Contribution Grid × interactive music studio**
 
-GitGroove macht die Beitragshistorie eines GitHub-Profils hörbar. Aus einem Kalender voller täglicher Aktivität entstehen Bass, Akkorde und Melodie. Du wählst einen Abschnitt im Raster, startest die Wiedergabe und veränderst Tempo und Klang direkt im Browser.
+GitGroove makes a GitHub profile's contribution history audible. A calendar of daily activity becomes bass, chords and melody. Select a section of the grid, start playback, then shape the tempo and sound directly in your browser.
 
-Das Projekt verbindet Datenvisualisierung, musikalisches Mapping und Echtzeit-Audio in einer Vue-/TypeScript-Anwendung. Entwickelt von [CodeRacon](https://github.com/CodeRacon) als spielbare Klangskulptur und als Projekt für das [Entwickler-Portfolio](https://www.michael-buschmann.dev).
+The project combines data visualization, musical mapping and real-time audio in a Vue/TypeScript application. Built by [CodeRacon](https://github.com/CodeRacon) as a playable sound sculpture and a project for the [developer portfolio](https://www.michael-buschmann.dev).
 
-![GitGroove: Contribution-Kalender, Wiedergabe und drei Synth-Kanäle](.github/images/gitgroove-studio.png)
+![GitGroove: contribution calendar, playback controls and three synth channels](.github/images/gitgroove-studio.png)
 
-_Studio-Ansicht mit synthetischem Testkalender. Die dargestellten Beitragszahlen sind keine echten Profildaten von CodeRacon._
+_Studio view with a synthetic test calendar. The contribution counts shown are not actual activity data from CodeRacon's profile._
 
-## Ausprobieren
+## Try it
 
-1. Einen öffentlichen GitHub-Benutzernamen eingeben oder **Try CodeRacon** anklicken. Ein eigener GitHub-Account ist dafür nicht erforderlich.
-2. Die Abschnittslänge über die Schnellwahl **4 / 8 / 12 / 16** oder **More…** wählen und den Auswahlbügel auf die gewünschten Wochen verschieben.
-3. **Play** drücken. Der Abschnitt wiederholt sich, während der Playhead die aktuelle Position im Kalender zeigt.
-4. Das Tempo zwischen **30 und 300 BPM** ändern und Bass, Pad und Lead über Lautstärke, Klangregler, Mute und Solo gestalten. Die Klaviatur transponiert alle Stimmen; jeder Synth besitzt eine eigene Oktavwahl.
-5. **Share sound** erstellt einen vollständigen Sound-Link mit QR-Code. **Download WAV** speichert den ausgewählten Abschnitt als Audiodatei.
+1. Enter a public GitHub username or select **Try CodeRacon**. You do not need a GitHub account of your own.
+2. Choose **4 / 8 / 12 / 16** weeks with the section-length buttons, or use **More…** for other lengths. Move the selection bracket to the weeks you want to hear.
+3. Press **Play**. The selected section repeats while the playhead tracks its position in the calendar.
+4. Set the tempo between **30 and 300 BPM** and shape Bass, Pad and Lead with their sound controls, volume, Mute and Solo. The root-key keyboard transposes all voices; each synth also has its own octave control.
+5. **Share sound** creates a complete sound link and QR code. **Download WAV** saves the selected section as an audio file.
 
-Pause hält die aktuelle Position; Stop setzt die Wiedergabe an den Abschnittsanfang zurück. Beim Wechsel zwischen Studio, Glossar und About läuft die Wiedergabe weiter; eine pausierte Sequenz bleibt pausiert. Ein neuer Abschnitt stoppt die bisherige Wiedergabe. **Tonart-, Oktav- und Arpeggio-Pattern-Wechsel laufen ohne Unterbrechung:** Die Abspielposition bleibt erhalten, neue Noten folgen der gewählten Einstellung und bereits klingende Töne und Effekte können ausklingen. Ein pausierter Loop bleibt beim Klangwechsel an seiner Position pausiert. **Reset sound** stellt die ursprünglichen Klang-, Mix- und Tempoeinstellungen wieder her und behält den Kalender und den gewählten Abschnitt.
+Pause keeps the current position; Stop returns to the section start. Playback continues when you move between Studio, Glossary, About and the legal pages. A paused sequence stays paused. Selecting a different section stops playback. **Key, octave and arpeggio-pattern changes keep the loop running:** new notes follow the updated settings while existing notes and effects can ring out. Changes made while paused preserve the paused position. **Reset sound** restores the original sound, mix and tempo while keeping the calendar and selected section.
 
-Das Raster lässt sich auf kleinen Bildschirmen horizontal scrollen. Auswahlbügel und Drehregler unterstützen Maus, Touch und Tastatur; die Oberfläche erklärt Ladefehler, fehlende Kalenderdaten und Abschnitte ohne Beiträge.
+On smaller screens, the calendar scrolls horizontally. The selection bracket and rotary controls support mouse, touch and keyboard input. Loading failures, missing calendars and sections without contributions have explanatory feedback.
 
-## Wiedergabe im gesamten Studio
+## Playback throughout the app
 
-**Space · Play/Pause** steuert die aktuelle Sequenz aus allen drei Ansichten. Pause behält die Position, Play setzt dort fort. Die Leertaste behält ihre normale Funktion in Eingabefeldern, Dropdowns, auf fokussierten Buttons, Links und anderen aktivierbaren Controls sowie in geöffneten Dialogen. Eigene Drehregler können den Shortcut nutzen; gedrückt gehaltene Tasten toggeln nur einmal. Ohne geladenen Kalender und während Lade-/Audio-Startvorgängen wird kein neuer Start ausgelöst.
+**Space · Play/Pause** controls the current sequence from every view. Pause keeps the position; Play resumes from there. Space retains its normal behavior in text fields, dropdowns, focused buttons, links, other activatable controls and open dialogs. Custom rotary controls can use the shortcut. Holding the key toggles playback only once. Playback cannot start without a loaded calendar or while data or audio is starting.
 
-Sobald die normale Play-/Pause-Steuerung nicht vollständig sichtbar ist, erscheint unten ein **Mini-Transport** mit Profil, Abschnittslänge, Zustand und Play/Pause. Er bleibt nach dem Pausieren und auf Glossary/About verfügbar. Der Profilbereich führt zur Studio-Steuerung zurück. Auf Desktop und Mobile nutzt er dieselbe Session; reservierter Platz und Safe-Area-Abstände halten Inhalt und Bedienflächen erreichbar. Native Dialoge behalten die Bedienung im Dialog. Interne Navigation erhält auch den Hash eines geteilten Sounds, damit ein Ansichtswechsel den Snapshot nicht erneut lädt.
+A **mini player** appears at the bottom when the main playback controls are not fully visible. It shows the profile, section length, playback state and Play/Pause. It stays available after pausing and on the information pages. Selecting its profile returns to the studio controls. Both players use the same playback session. Reserved space and safe-area padding keep content and controls accessible on desktop and mobile. Internal navigation preserves a shared sound's URL fragment so changing views does not reload its snapshot.
 
-Die häufigen Abschnittslängen 4, 8, 12 und 16 sind direkte Buttons. **More…** enthält weitere Längen, kurze Abschnitte und Full calendar; wiederhergestellte Sonderlängen bleiben sichtbar. Längen- und Bereichsänderungen stoppen weiterhin am Abschnittsanfang. Ein unterbrechungsfreier Längenwechsel wurde geprüft und bleibt als separate Erweiterung vorgemerkt: Er benötigt eine abgestimmte Übernahme neuer Abschnittsgrenzen und eine klare Darstellung des Übergangs.
+Common section lengths have dedicated buttons. **More…** offers additional lengths, shorter sections and the full calendar. Custom lengths restored from shared sounds remain visible. Length and bracket changes stop playback at the section start.
 
-## Technischer Überblick
+## Technology
 
-| Technologie                       | Aufgabe                                                                       |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| Vue 3 mit Composition API         | Komponenten, reaktive Oberfläche und interaktive Controls                     |
-| TypeScript                        | Typisierte Beitragsdaten, Notenereignisse, Playback- und Synth-Schnittstellen |
-| Pinia                             | Laden und Zustand des GitHub-Beitragskalenders                                |
-| Vue Router                        | Studio, Glossar und Projektbeschreibung                                       |
-| Tone.js / Web Audio               | Synthese, Effekte und zeitlich geplante Wiedergabe                            |
-| Vite                              | Entwicklung, Produktionsbuild und lokaler GitHub-Proxy                        |
-| PHP / GitHub GraphQL API          | Serverseitiger Datenabruf im Deployment                                       |
-| Vitest / Vue Test Utils / Cypress | Domänen-, Komponenten- und End-to-End-Tests                                   |
+| Technology                        | Role                                                                |
+| --------------------------------- | ------------------------------------------------------------------- |
+| Vue 3 with Composition API        | Components, reactive UI and interactive controls                    |
+| TypeScript                        | Typed contribution data, note events, playback and synth interfaces |
+| Pinia                             | Contribution-calendar data and loading/error state                  |
+| Vue Router                        | Studio, glossary, project information and legal views               |
+| Tone.js / Web Audio               | Synthesis, effects and scheduled playback                           |
+| Vite                              | Development server, production build and local GitHub proxy         |
+| PHP / GitHub GraphQL API          | Server-side contribution requests in production                     |
+| Vitest / Vue Test Utils / Cypress | Domain, component and end-to-end tests                              |
 
-## Architektur und Datenfluss
+## Architecture and data flow
 
 ```mermaid
 flowchart TD
-    GitHub[GitHub GraphQL API] --> Proxy[Server-Endpunkt]
-    Proxy --> Calendar[Validierter Beitragskalender]
-    Calendar --> Score[Unveränderliche Notenfolge]
+    GitHub[GitHub GraphQL API] --> Proxy[Server endpoint]
+    Proxy --> Calendar[Validated contribution calendar]
+    Calendar --> Score[Immutable note sequence]
     Score --> Session[PlaybackSession]
     Session --> Tone[ToneAudioAdapter]
     Tone --> Audio[Web Audio]
-    Session --> UI[Vue-Oberfläche / Playhead]
+    Session --> UI[Vue UI / playhead]
 ```
 
-Der Browser fragt den gleichnamigen Endpunkt `/api/contributions.php` an. In der Entwicklung beantwortet ihn ein Vite-Plugin, im Deployment eine PHP-Datei. Beide greifen auf die GitHub GraphQL API zu und halten den Token auf der Serverseite.
+The browser requests `/api/contributions.php` on the same origin. A Vite plugin handles the endpoint during development; PHP handles it in production. Both call the GitHub GraphQL API and keep the token on the server.
 
-| Modul                                                                                                         | Verantwortung                                                                             |
+| Module                                                                                                        | Responsibility                                                                            |
 | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [`src/services/github`](src/services/github/github.service.ts) und [`src/stores`](src/stores/github.store.ts) | HTTP-Abruf, verständliche Fehler und Schutz vor verspäteten Antworten bei Profilwechseln  |
-| [`src/contributions/calendar.ts`](src/contributions/calendar.ts)                                              | Validierung, Sortierung und Normalisierung auf sieben Tage je Woche                       |
-| [`src/music/score.ts`](src/music/score.ts)                                                                    | Reproduzierbares Mapping von Kalender und Auswahl auf typisierte Notenereignisse          |
-| [`src/playback/session.ts`](src/playback/session.ts)                                                          | Status, Tempo, Position sowie Start, Pause und Stop über ein `PlaybackAdapter`-Interface  |
-| [`src/playback/tone-adapter.ts`](src/playback/tone-adapter.ts)                                                | Tone.js-Transport und Ausführung der Notenereignisse                                      |
-| [`src/audio/graph.ts`](src/audio/graph.ts)                                                                    | Gemeinsamer Synth- und Effektgraph für Live-Wiedergabe und Offline-Export                 |
-| [`src/audio/output.ts`](src/audio/output.ts)                                                                  | Pegelreserve, Dynamikbegrenzung, weiche Ausgangsgrenze und stabile Echo-Rückführung       |
-| [`src/audio/export.ts`](src/audio/export.ts) und [`wav.ts`](src/audio/wav.ts)                                 | Isoliertes Offline-Rendering und PCM-WAV-Encoding                                         |
-| [`src/studio`](src/studio)                                                                                    | Zentraler Studiozustand, validierte/versionierte Snapshots und komprimierte Freigabelinks |
-| [`src/audio/studio.ts`](src/audio/studio.ts) und [`mix.ts`](src/audio/mix.ts)                                 | Verbindung zur Oberfläche und unabhängige Mix-Logik                                       |
-| [`src/components`](src/components) und [`src/views`](src/views)                                               | Kalender, Bereichsauswahl, Transport, Synth-Controls und ergänzende Ansichten             |
+| [`src/services/github`](src/services/github/github.service.ts) and [`src/stores`](src/stores/github.store.ts) | HTTP requests, useful errors and protection against stale responses after profile changes |
+| [`src/contributions/calendar.ts`](src/contributions/calendar.ts)                                              | Validation, sorting and normalization into seven day steps per week                       |
+| [`src/music/score.ts`](src/music/score.ts)                                                                    | Reproducible mapping from calendar and selection to typed note events                     |
+| [`src/playback/session.ts`](src/playback/session.ts)                                                          | State, tempo, position, Play, Pause and Stop through a `PlaybackAdapter` interface        |
+| [`src/playback/tone-adapter.ts`](src/playback/tone-adapter.ts)                                                | Tone.js transport and note-event execution                                                |
+| [`src/audio/graph.ts`](src/audio/graph.ts)                                                                    | Shared synth and effect graph for live playback and offline export                        |
+| [`src/audio/output.ts`](src/audio/output.ts)                                                                  | Headroom, dynamic compression, a soft output ceiling and stable echo feedback             |
+| [`src/audio/export.ts`](src/audio/export.ts) and [`wav.ts`](src/audio/wav.ts)                                 | Isolated offline rendering and PCM WAV encoding                                           |
+| [`src/studio`](src/studio)                                                                                    | Central studio state, validated/versioned snapshots and compressed share links            |
+| [`src/audio/studio.ts`](src/audio/studio.ts) and [`mix.ts`](src/audio/mix.ts)                                 | UI integration and independent mix logic                                                  |
+| [`src/components`](src/components) and [`src/views`](src/views)                                               | Calendar, section selection, transport, synth controls and supporting views               |
 
-### Entscheidungen hinter der Implementierung
+### Design decisions
 
-- **Daten werden am Eingang normalisiert.** Der Kalender prüft Datumswerte, Beitragszahlen, doppelte Tage und Lücken. Unvollständige Randwochen erhalten stumme Platzhalter. Dadurch bleiben Zeitstruktur und Raster auch bei 53 Wochen konsistent.
-- **Musikgenerierung ist von Audio und UI getrennt.** `createScore` erzeugt eine mit `readonly` typisierte und zur Laufzeit eingefrorene Notenfolge. Profil, Kalender-Schnappschuss, Auswahl und Mapping-Einstellungen bestimmen das Ergebnis; Zufall zur Laufzeit wird nicht benötigt. `mappingVersion` kennzeichnet die verwendete Mapping-Version.
-- **Die Audio-Uhr bestimmt das Timing.** Tone.js plant Noten über seinen Transport. Die Session liest dessen Position aus; `requestAnimationFrame` aktualisiert die Darstellung. Die Render-Schleife löst keine Noten aus. Eine Auflösung von 672 Ticks pro Beat erlaubt ganzzahlige Tick-Positionen für die sieben gleichmäßigen Tagesschritte innerhalb von vier Beats.
-- **Playback lässt sich ohne Audio-Gerät testen.** Die Session arbeitet gegen ein Adapter-Interface; Unit-Tests ersetzen Tone.js durch einen kontrollierbaren Fake-Adapter.
-- **Transposition und Patterns erhalten den laufenden Transport.** Die Session prüft, ob eine neue Notenfolge dieselben Ereigniszeitpunkte, Stimmen und Abschnittsgrenzen besitzt. Bei Tonart-, Oktav- und Pattern-Wechseln ersetzt der Adapter die Tonhöhen. Ein gemeinsamer Transport-Callback liest alle 96 Ticks (ein Viertel eines Tagesschritts) die aktuellen Notenereignisse; das deckt sämtliche vorhandenen Unterteilungen exakt ab. Er plant keine zweite Sequenz, setzt die Position nicht zurück und bricht keine Ausklänge ab. Änderungen der Abschnittsauswahl laden weiterhin einen neuen Abschnitt. Ein Jahreswechsel stoppt sofort; der neue Kalender wird nach dem Laden übernommen und wartet auf einen bewussten Play-Befehl.
-- **Mix-Zustände bleiben getrennt.** Faderwert, Mute, Solo und Wiedergabe-Gate sind eigene Zustände. Solo kann eine gemutete Stimme vorübergehend hörbar machen, ohne deren gespeicherten Pegel oder Mute-Zustand zu verändern. Pegel- und Effektänderungen werden im Audio-Adapter über kurze Rampen angewendet.
-- **Live und Export teilen denselben Signalgraphen.** Jeder Graph erhält einen expliziten Audio-Kontext. Der Export verwendet einen eigenen `Tone.OfflineContext` und verändert weder den Live-Kontext noch dessen Transport; laufende Wiedergabe bleibt erhalten. QR-Erzeugung und Export werden erst bei Bedarf nachgeladen.
-- **Audioinstanzen haben einen definierten Lebenszyklus.** Beim Hot Module Replacement räumt das Studio seine Watcher, den Transport und den Audio-Graphen auf, damit frühere Synth- und Effektinstanzen in der Entwicklung nicht neben neuen weiterlaufen.
-- **Ein Freigabelink enthält seine Daten selbst.** Ein kompaktes, versioniertes Snapshot-Modell speichert den Kalender samt Randplatzhaltern und allen Studioeinstellungen. Native `CompressionStream`-/`DecompressionStream`-APIs und Base64url kodieren den Zustand im URL-Fragment. Beim Öffnen werden Formatversionen, Datenmengen, Auswahlgrenzen und Parameterbereiche geprüft.
+- **Normalize data at the boundary.** Calendar validation checks dates, contribution counts, duplicate days and gaps. Incomplete boundary weeks receive silent placeholders, preserving the grid and timing even across 53 weeks.
+- **Separate music generation from audio and UI.** `createScore` produces a sequence typed as `readonly` and frozen at runtime. The profile, calendar snapshot, selection and mapping settings determine the result without runtime randomness. `mappingVersion` identifies the mapping used.
+- **Let the audio clock drive timing.** Tone.js schedules notes on its transport. The session reads its position, while `requestAnimationFrame` updates the UI; the render loop never triggers notes. A resolution of 672 ticks per beat gives integer tick positions for seven evenly spaced day steps over four beats.
+- **Test playback without audio hardware.** The session depends on an adapter interface. Unit tests replace Tone.js with a controllable fake adapter.
+- **Keep the transport running during transposition and pattern changes.** The session checks that a replacement score has the same event times, voices and section boundaries. The adapter then replaces pitches. A shared transport callback reads current note events every 96 ticks, covering all existing subdivisions exactly. It does not create a second sequence, reset the position or cut off effect tails. Section changes load a new section; year changes stop immediately and wait for an explicit Play after loading.
+- **Keep mix states independent.** Fader value, Mute, Solo and the playback gate are separate states. Solo can temporarily make a muted voice audible without altering its stored level or Mute state. Short ramps apply level and effect changes.
+- **Share the signal graph between playback and export.** Each graph receives an explicit audio context. Export uses its own `Tone.OfflineContext`, leaving the live context and transport running. QR generation and export code load on demand.
+- **Give audio instances a defined lifecycle.** During hot module replacement, the studio disposes its watchers, transport and audio graph so old synth and effect instances cannot keep running alongside new ones.
+- **Make share links self-contained.** A compact, versioned snapshot stores the calendar, boundary placeholders and every studio setting. Native `CompressionStream`/`DecompressionStream` APIs and Base64url encode the state in a URL fragment. Restoration validates versions, data limits, selection boundaries and parameter ranges.
 
-Die Begriffe und ihre Beziehungen sind zusätzlich in [`CONTEXT.md`](CONTEXT.md) dokumentiert.
+The domain terminology and relationships are also documented in [`CONTEXT.md`](CONTEXT.md).
 
-## Contribution-History
+## Contribution history
 
-Unter dem Grid stehen **Last 12 months** und die von GitHub gemeldeten Beitragsjahre, neueste zuerst. Die bisherige rollierende Jahresansicht bleibt der Einstieg. Ein Kalenderjahr beginnt am 1. Januar und endet am 31. Dezember; das aktuelle Jahr endet heute. UTC-Grenzen, Schaltjahre und unvollständige Randwochen werden berücksichtigt. Auf kleinen Displays ist die Jahresleiste horizontal scrollbar.
+Below the grid, **Last 12 months** sits alongside the contribution years reported by GitHub, newest first. The rolling year is the initial view. Calendar years run from January 1 to December 31, or through today for the current year. UTC boundaries, leap years and incomplete boundary weeks are handled explicitly. The year buttons scroll horizontally on narrow screens.
 
-Beide Proxys fragen zusätzlich `contributionYears` ab und akzeptieren einen validierten optionalen `year`-Parameter. Die GraphQL-Abfrage nutzt für Kalenderjahre explizite `from`-/`to`-Werte. Server- und Browsercache trennen Profil und Zeitraum und halten erfolgreiche Antworten fünf Minuten vor; der Browsercache ist auf 40 Einträge begrenzt. Andere Jahre laden erst bei Auswahl. Verfügbar sind die von GitHub sichtbaren Contributions gemäß Profileinstellungen und API-Berechtigungen.
+Both proxies request `contributionYears` and accept a validated optional `year` parameter. Calendar-year queries use explicit `from` and `to` values. The browser's in-memory cache separates profiles and periods, reuses successful responses for five minutes and holds at most 40 entries. The production endpoint does not persist calendar responses in files. The local development proxy also uses an in-memory cache. Years load on demand, subject to GitHub's contribution visibility settings and API permissions.
 
-Ein Jahreswechsel erhält Sound und Tempo sowie Abschnittslänge und Position, soweit diese in den neuen Kalender passen. Der aktuelle Kalender bleibt beim Laden und bei Fehlern verfügbar. Ein anderes Jahr stoppt die Wiedergabe sofort. Nach dem Laden wird das neue Grid angezeigt, ohne automatisch abzuspielen; Play startet am Anfang des gewählten Abschnitts. Spätere Antworten überholter Anfragen können die Auswahl nicht überschreiben. Ein Klick auf den bereits aktiven Zeitraum verändert die Wiedergabe nicht und verwirft gegebenenfalls eine noch laufende Anfrage. Share-Links öffnen ihren eingefrorenen Kalender ohne Netzabruf; **Explore profile history** lädt ausdrücklich wieder Live-Daten.
+Changing years preserves sound, tempo and the selected length and position where they fit the new calendar. The previous calendar stays available while loading and after errors. Choosing another year stops playback immediately. Once loaded, the new grid waits for Play, which starts from the selected section's beginning. Late responses from superseded requests cannot replace the current selection. Selecting the already active period leaves playback unchanged and can cancel a pending switch. Shared sounds restore their frozen calendars without a contribution request; **Explore profile history** explicitly returns to live data.
 
-## Vom Kalender zur Musik
+## From calendar to music
 
-Eine Kalenderwoche entspricht einem **4/4-Takt mit sieben gleichmäßig verteilten Tagesschritten**. Die Schritte liegen jeweils `4 / 7` Beats auseinander. Im Standardpattern Original bestimmt die Anzahl der Beiträge, welche Stimmen einsetzen:
+One calendar week becomes a **4/4 bar with seven evenly spaced day steps**, each `4 / 7` beats apart. With the default Original pattern, daily contribution counts determine which voices play:
 
-| Beiträge an einem Tag                      | Musikalisches Ergebnis                            |
-| ------------------------------------------ | ------------------------------------------------- |
-| 0 oder Platzhalter außerhalb des Zeitraums | Keine neuen Notenereignisse                       |
-| 1–5                                        | Bass-Grundton                                     |
-| 6–10                                       | Bass und Pad-Akkord                               |
-| 11–19                                      | Zusätzlich eine Lead-Folge aus zwei Akkordtönen   |
-| 20 und mehr                                | Zusätzlich ein Lead-Arpeggio aus vier Akkordtönen |
+| Daily contributions                              | Musical result                        |
+| ------------------------------------------------ | ------------------------------------- |
+| 0, or a placeholder outside the requested period | No new note events                    |
+| 1–5                                              | Bass root note                        |
+| 6–10                                             | Bass and a pad chord                  |
+| 11–19                                            | An additional two-note lead phrase    |
+| 20 or more                                       | An additional four-note lead arpeggio |
 
-Die Beitragsstärke beeinflusst auch die Anschlagstärke. Wochenposition und Beitragsmenge bestimmen den Akkord aus `I`, `IV`, `V` und `vi`. Ein Hash aus Profilname, Datum und Beitragszahl legt die Reihenfolge der Lead-Töne fest. C-Dur bleibt der Standard. Die Klaviatur bietet zwölf Dur-Tonarten, die Oktavwahl je Stimme reicht von −1 bis +1. Original erhält die C-Dur-Voicings der bisherigen Mapping-Version 2 und transponiert sie um die gewählten Halbtöne und Oktaven. Mapping-Version 3 ergänzt die unten beschriebenen Patterns.
+Contribution intensity also affects velocity. Week position and contribution counts select a chord from `I`, `IV`, `V` and `vi`. A hash of the profile name, date and contribution count determines the lead-note order. C major is the default. The root-key keyboard offers twelve major keys, and each voice has an octave range of −1 to +1. Original preserves the C-major voicings of mapping version 2 and transposes them by the selected key and octave. Mapping version 3 adds the selectable patterns below.
 
-Bass und Lead haben unabhängig die Patterns **Original**, **Up**, **Down** und **Up/Down**. Original reproduziert das bisherige Mapping einschließlich der datenabhängigen Lead-Figuren. Andere Patterns durchlaufen die drei Töne des Wochenakkords in echten auf- bzw. absteigenden Lagen; Up/Down nutzt die Indizes `0, 1, 2, 1` ohne doppelte Wendepunkte. Der Verlauf beginnt pro Quellwoche neu und hängt damit nicht vom gewählten Abschnitt ab. Bass behält einen Einsatz pro aktivem Tag, Lead seine zwei bzw. vier Einsätze. Patterns ändern Tonhöhen, keine Einsatzzeitpunkte, Notenanzahl oder stillen Tage. Tonart und Oktavlage werden anschließend berücksichtigt. Reset sound setzt beide Patterns auf Original.
+Bass and Lead independently offer **Original**, **Up**, **Down** and **Up/Down**. Original reproduces the earlier mapping, including its data-driven lead phrases. The other patterns move through the weekly chord's three tones in ascending or descending registers. Up/Down uses indices `0, 1, 2, 1`, without repeating turning notes. Patterns restart each source week, independently of the selected section. Bass keeps one note per active day; Lead keeps its two or four notes. Patterns change pitches, preserving event times, note counts and silent days. Key and octave transposition apply afterward. Reset sound restores Original for both voices.
 
-Die drei Signalwege sind unterschiedlich aufgebaut:
+Each voice has a different signal path:
 
-- **Bass:** MonoSynth mit wählbarer Square-, Sine-, Triangle- oder Saw-Wellenform, Tiefpassfilter und einstellbarer Resonanz.
-- **Pad:** PolySynth mit FMSynth-Stimmen, Tiefpass, Chorus und Reverb; separate normale und Modulationshüllkurve.
-- **Lead:** MonoSynth mit Tiefpass, Ping-Pong-Delay, Distortion und Reverb.
+- **Bass:** MonoSynth with Square, Sine, Triangle or Saw waveform, a low-pass filter and adjustable resonance.
+- **Pad:** PolySynth with FMSynth voices, low-pass filtering, chorus and reverb, with separate amplitude and modulation envelopes.
+- **Lead:** MonoSynth with low-pass filtering, ping-pong delay, distortion and reverb.
 
-Tempo und Synth-Regler verändern die Wiedergabe und den Klang. Das Kalender-Mapping bleibt dabei die Grundlage der Notenfolge. Tage ohne Beiträge erzeugen keine neuen Töne; bereits gestartete Töne und Effekte können ausklingen.
+Tempo and synth controls change playback and timbre while the calendar remains the basis of the note sequence. Silent days start no new notes; existing notes and effects can ring out.
 
-**Lead focus** ist ein optionaler Regler für mehr Platz bei Lead-Einsätzen. Er senkt den Pad-Signalweg bei Lead-Noten kurz ab: 12 ms Attack, 180 ms Rückkehr und bis zu 12 dB Absenkung bei 100 %. Mute, Solo und das Playback-Gate werden berücksichtigt. Bei 0 % ist die Absenkung ausgeschaltet; gespeicherte Faderwerte bleiben erhalten.
+**Lead focus** briefly lowers the pad at lead-note attacks: 12 ms attack, 180 ms return and up to 12 dB attenuation at 100%. It respects Mute, Solo and the playback gate. At 0%, attenuation is disabled. Stored fader values remain unchanged.
 
-Die drei Stimmen laufen nach Effekten, Pegeln und Mute/Solo durch eine **gemeinsame Ausgangsstufe**. Sie bietet 6 dB Pegelreserve, einen Kompressor mit 3 ms Attack und 120 ms Release sowie eine weiche Grenze unter ±0,98. So werden aufsummierte Spitzen abgefangen, bevor sie den Browser-Ausgang oder den WAV-Encoder erreichen. Die Faderwerte bleiben erhalten; die Gesamtausgabe ist gegenüber dem früheren ungeschützten Signalweg leiser und kann bei hohen Pegeln komprimieren. Der zusätzliche Headroom ist keine Lautheitsnormalisierung einzelner Profile.
+After effects, levels and Mute/Solo, all three voices pass through a **shared output stage**. It provides 6 dB of headroom, a compressor with 3 ms attack and 120 ms release, and a soft ceiling below ±0.98. This controls combined peaks before they reach the browser output or WAV encoder. Fader values remain unchanged, but the overall output is quieter than the earlier unprotected signal path and can compress at high levels. The added headroom does not normalize loudness between profiles.
 
-Der Feedback-Regler 0–1 wird intern auf 0–95 % Rückführung abgebildet. Auch die maximale Einstellung klingt damit ab, statt Echoenergie unbegrenzt zu halten. Wellenformen, Noten und bewusst aktivierte Distortion behalten ihren jeweiligen Klangcharakter. Ausgangsbegrenzung und Feedback-Kennlinie gelten identisch für Live und Export.
+The feedback control's 0–1 range maps internally to 0–95% regeneration. Even its maximum setting gradually decays. Waveforms, notes and intentionally enabled distortion retain their character. Live playback and export use the same output processing and feedback curve.
 
-## Sounds teilen und exportieren
+## Sharing sounds and exporting audio
 
-Ein Snapshot enthält **Profilname, eingefrorene Beitragsdaten, Abschnittslänge und Bügelposition, BPM, Tonart, alle drei Oktavlagen, die beiden Arpeggio-Patterns, das ausgewählte Kalenderjahr, sämtliche Synth-Regler und Effekte, Lautstärken, Mute/Solo, Lead focus und die gewählte Pad-Hüllkurvenansicht**. Später veränderte GitHub-Beiträge verändern den Link nicht. Der Empfänger benötigt keinen GitHub-Abruf und startet die Musik bewusst mit Play. Aktuelle Profildaten lassen sich anschließend wie gewohnt laden.
+A snapshot includes the **profile name, frozen contribution calendar, section length and bracket position, BPM, key, all three octaves, both arpeggio patterns, selected calendar year, every synth control and effect, volume, Mute/Solo, Lead focus and the selected pad-envelope view**. Later GitHub activity cannot change the captured calendar. Recipients restore the sound without another contribution request and explicitly press Play to listen. They can subsequently load current profile data.
 
-Links werden vollständig im Browser erstellt; es gibt keinen Snapshot-Speicherdienst. Der QR-Code enthält denselben Link und lässt sich als PNG herunterladen. Dafür wird die kleine Bibliothek `qrcode` bei Bedarf geladen. Teilen und Wiederherstellen benötigen einen Browser mit den nativen Kompressions-APIs. Ein für QR zu großer Snapshot bleibt als kopierbarer Link verfügbar.
+Links are created entirely in the browser, without a snapshot storage service. The QR code contains the same link and can be downloaded as PNG. The small `qrcode` library loads on demand. Sharing and restoration require the browser's native compression APIs. A snapshot too large for a QR code remains available as a copyable link.
 
-Snapshots versionieren Datenformat, musikalisches Mapping und Soundgraph. Nicht unterstützte Versionen erzeugen eine verständliche Fehlermeldung. Die Notenfolge und Einstellungen werden exakt wiederhergestellt; die Audiosamples sind durch die pro Audio-Kontext erzeugten Reverb-Impulsantworten nicht zwingend bitidentisch. Für eine unveränderliche Audioaufnahme dient der WAV-Export.
+Snapshots version their data format, musical mapping and sound graph. Unsupported versions produce a useful error. Note sequences and settings restore exactly; audio samples may differ because reverb impulse responses are generated for each audio context. WAV export provides a fixed audio recording.
 
-Soundgraph-Version 2 ergänzt die Ausgangsbegrenzung und die stabile Feedback-Kennlinie. Links mit Soundgraph-Version 1 werden weiterhin geöffnet: Kalender, Noten und Reglerwerte bleiben erhalten, die Wiedergabe nutzt die korrigierte Verarbeitung. Eine neue Freigabe speichert Version 2. Das Datenformat bleibt unverändert. Mapping-Version 3 ergänzt die wählbaren Arpeggio-Patterns. Links mit Mapping-Version 2 werden auf Original für beide Stimmen gesetzt; ihre bisherige Notenfolge bleibt erhalten.
+Sound graph version 2 adds output protection and the stable feedback curve. Version-1 links remain supported: their calendar, notes and control settings are preserved, while playback uses the corrected processing. New links save version 2. Mapping version 3 adds selectable arpeggio patterns; mapping-version-2 links restore Original for both voices and retain their earlier note sequence.
 
-**Download WAV** rendert einen beim Start des Downloads eingefrorenen Zustand als Stereo-PCM mit **44,1 kHz / 16 Bit**, einschließlich Effekten und Mix:
+**Download WAV** freezes the state at the start of the export and renders stereo PCM at **44.1 kHz / 16 bit**, including effects and the current mix:
 
-- **Loop:** exakt eine Abschnittslänge. Zwölf Sekunden Vorlauf bauen die laufenden Hüllkurven und Effekte auf; das Ergebnis wird auf die genaue Framezahl zugeschnitten. Kurze 3-ms-Fades an beiden Rändern vermeiden Sprünge beim Wiederholen.
-- **Clip with effect tail:** ein Abschnitt ab seinem Anfang plus zwölf Sekunden Ausklang und ein abschließender Fade.
+- **Loop:** exactly one selected section. A twelve-second preroll establishes envelopes and effects, after which the result is trimmed to the exact frame count. Short 3 ms fades at both boundaries avoid discontinuities when repeating.
+- **Clip with effect tail:** one section from its beginning, followed by twelve seconds of decay and a final fade.
 
-Der Dialog zeigt Dauer, geschätzte Dateigröße und Fortschritt. Spitzen über dem PCM-Maximum werden auf 98 % reduziert, damit der Export nicht clippt; diese Anpassung wird angezeigt. Abbrechen verwirft das Ergebnis. Eine bereits laufende native Offline-Audiorenderphase endet intern, bevor ihre Ressourcen freigegeben werden. MP3-Encoding ist nicht enthalten.
+The dialog shows duration, estimated file size and progress. Peaks exceeding the PCM maximum are reduced to 98% to prevent export clipping; this adjustment is reported. Cancel discards the result. An already running native offline render finishes internally before its resources are released. MP3 encoding is not included.
 
-## Lokal starten
+## Local development
 
-Voraussetzungen: Node.js und npm; die Entwicklung und Prüfungen wurden mit Node.js 24 ausgeführt. Für echte Beitragsdaten wird außerdem ein GitHub-Token benötigt, der die GraphQL-Abfrage ausführen kann.
+Requirements: Node.js and npm. Development and verification used Node.js 24. Loading actual contributions also requires a GitHub token that can execute the GraphQL query.
 
 ```bash
 git clone https://github.com/CodeRacon/GitGroove.git
@@ -151,7 +151,7 @@ cd GitGroove
 npm ci
 ```
 
-Im Projektverzeichnis eine `.env` anlegen:
+Create a `.env` file in the project root:
 
 ```dotenv
 GITHUB_TOKEN=your_github_token
@@ -161,11 +161,11 @@ GITHUB_TOKEN=your_github_token
 npm run dev
 ```
 
-Die von Vite ausgegebene lokale URL öffnen. Der Entwicklungsproxy übernimmt den API-Abruf; lokal wird dafür kein PHP-Server benötigt. Nach einer Änderung an `.env` den Entwicklungsserver neu starten.
+Open the local URL printed by Vite. The development proxy handles API requests, so a local PHP server is not needed. Restart the development server after changing `.env`.
 
-`.env` ist vom Repository ausgeschlossen. Der Token heißt ausdrücklich `GITHUB_TOKEN`, **ohne `VITE_`-Präfix**, und wird vom Server-Plugin gelesen. Echte Tokens gehören weder in den Client-Code noch in das Repository.
+`.env` is excluded from version control. The token is named `GITHUB_TOKEN`, **without a `VITE_` prefix**, and is read by the server plugin. Never put actual tokens in client code or the repository.
 
-## Tests und Qualitätssicherung
+## Testing and quality checks
 
 ```bash
 npm run type-check
@@ -176,35 +176,44 @@ npm run test:e2e
 npm run test:audio
 ```
 
-`npm run build` führt Typechecking und Produktionsbuild aus. Die End-to-End-Tests benötigen diesen Build; das E2E-Skript startet den Preview-Server und Cypress selbst. Die Cypress-Szenarien ersetzen den GitHub-Endpunkt durch feste Testdaten und benötigen daher keinen Token.
+`npm run build` runs typechecking and creates the production build. End-to-end tests require this build; the E2E script starts the preview server and Cypress. UI scenarios intercept the GitHub endpoint with fixed test data and do not need a token.
 
-`npm run test:audio` benötigt installiertes Google Chrome und startet separat einen lokalen Vite-Server auf Port 4175. Der reine Test-Harness rendert den tatsächlichen Synth- und Effektgraphen über Web Audio, ohne GitHub-Daten abzurufen. Er prüft Samples auf Übersteuerung, hörbaren Signalrest, Feedback-Ausklang und Wellenform-/Oktavübergänge. Ein zusätzlicher Test stoppt den echten Tone-Transport für einen Kalenderwechsel und vergleicht Anzahl, Tonhöhen und Zeitpunkte der Noten vor dem Stopp und nach einem ausdrücklich späteren Neustart. Während der Ladepause dürfen keine neuen Noten ausgelöst werden. Die Testdateien werden nicht in den Produktionsbuild eingebunden.
+`npm run test:audio` requires Google Chrome and starts a separate local Vite server on port 4175. Its test harness renders the actual synth and effect graph through Web Audio without requesting GitHub data. It checks samples for overload, audible output, feedback decay and waveform/octave transitions. A transport test also stops the real Tone.js transport for a calendar change and compares note counts, pitches and timing before the stop and after an explicit restart. No new notes may begin during the loading pause. Test fixtures are not included in the production build.
 
-Die Tests decken unterschiedliche Grenzen der Anwendung ab:
+Tests cover the application's main boundaries:
 
-- **Kalender:** Randwochen, 53 Wochen und ungültige Daten.
-- **Mapping:** reproduzierbare Ereignisse, unveränderliche Schnappschüsse, Tagesschritte und Akkorde.
-- **Playback und Mix:** Tempo, Pause/Fortsetzen, Tonart-/Oktavwechsel bei laufendem oder pausiertem Transport sowie das Zusammenspiel von Solo, Mute und Faderwerten. Adapter-Tests prüfen, dass bestehende Audio-Callbacks die neuen Tonhöhen verwenden, ohne Transport oder Ausklänge zu unterbrechen.
-- **Controls:** native Slider, Tastaturbedienung, Auswahlgrenzen, Pointer-Gesten und deren Abbruch.
-- **User-Flows:** Profil laden, Beispiel-Einstieg, fehlgeschlagener Profilwechsel, Bereichsauswahl, Wiedergabe beim Ansichtswechsel und Hinweise auf stumme Abschnitte.
-- **Snapshots:** Roundtrip sämtlicher Parameter und Kalenderdaten, unabhängige Kopien, Versions- und Bereichsvalidierung sowie Schutz vor beschädigten oder übergroßen Links und verspäteten Profilantworten.
-- **Audio-Export:** WAV-Header, Stereo-Interleaving, exakte Framezahl, Grenz-Fades, Peak-Normalisierung und Abbruch. Cypress prüft tatsächlich heruntergeladene WAVs samt Nutzdaten und ununterbrochener Live-Wiedergabe.
-- **Sound-Controls und Freigabe:** Transposition und Oktavlagen, Lead-focus-/Mix-Regeln sowie vollständige Wiederherstellung eines 53-Wochen-Snapshots ohne weiteren GitHub-Abruf.
+- **Calendar:** incomplete weeks, 53-week calendars and invalid data.
+- **Mapping:** reproducible events, immutable snapshots, day steps and chords.
+- **Playback and mix:** tempo, pause/resume, key/octave changes during playback and while paused, plus interactions between Solo, Mute and fader values. Adapter tests verify that existing callbacks use new pitches without interrupting transport or effect tails.
+- **Controls:** native sliders, keyboard input, selection boundaries, pointer gestures and cancellation.
+- **User flows:** profile loading, the example profile, failed profile changes, section selection, playback across views and explanations for silent sections.
+- **Snapshots:** complete parameter/calendar round trips, independent copies, version/range validation and protection against malformed or oversized links and late profile responses.
+- **Audio export:** WAV headers, stereo interleaving, exact frame counts, boundary fades, peak normalization and cancellation. Cypress checks downloaded WAV data and uninterrupted live playback.
+- **Sound controls and sharing:** transposition, octaves, Lead focus/mix rules and full restoration of a 53-week snapshot without another GitHub request.
+- **Legal pages and storage:** reachable provider/privacy information, removal of legacy glossary preferences and preservation of playback and snapshot fragments across navigation.
 
-Cypress prüft zusätzlich das Layout bei Desktop-, Tablet- und Smartphone-Breiten und erstellt Screenshots. Diese Tests prüfen den Ablauf und die Darstellung; ein Hörtest auf realen Geräten bleibt eine ergänzende manuelle Prüfung.
+Cypress also checks desktop, tablet and smartphone layouts and generates screenshots. These tests verify behavior and rendering; listening on physical devices remains a useful additional manual check.
 
-## Build und Deployment
+## Build and deployment
 
 ```bash
 npm run build
 ```
 
-Der Build liegt in `dist/`. Für den Live-Betrieb wird ein Hosting benötigt, das den mitgelieferten PHP-Endpunkt mit cURL ausführen kann.
+The build is written to `dist/`. Production hosting must support the included PHP endpoint with cURL.
 
-1. Den **Inhalt von `dist/`** in das Webverzeichnis hochladen. Vite kopiert `public/api/contributions.php` nach `dist/api/contributions.php`.
-2. `GITHUB_TOKEN` in der Serverumgebung konfigurieren. Alternativ auf einem Hosting mit `public_html` die Datei [`deployment/gitgroove-secret.example.php`](deployment/gitgroove-secret.example.php) als `gitgroove-secret.php` oberhalb von `public_html` ablegen und dort den Token eintragen.
-3. Den Endpunkt `/api/contributions.php?username=CodeRacon` auf dem Hosting prüfen und anschließend Profilabruf und Wiedergabe im Browser testen.
+1. Upload the **contents of `dist/`** to the web root. Vite copies `public/api/contributions.php` to `dist/api/contributions.php`.
+2. Configure `GITHUB_TOKEN` in the server environment. On hosting with a `public_html` directory, you can instead copy [`deployment/gitgroove-secret.example.php`](deployment/gitgroove-secret.example.php) to `gitgroove-secret.php` above `public_html` and set the token there.
+3. Check `/api/contributions.php?username=CodeRacon` on the host, then test profile loading and playback in the browser.
 
-Beide Proxy-Implementierungen cachen erfolgreiche Kalenderantworten für fünf Minuten. Fehler bei unbekannten Profilen, fehlender Autorisierung, Rate Limits oder Verbindungsproblemen werden über HTTP-Statuscodes an den Client weitergegeben.
+The production endpoint processes calendar responses only for the duration of each request. It removes calendar-cache files created by earlier releases from the temporary server directory on the next API request; server permissions must allow deletion. The browser and local development proxy reuse in-memory responses for five minutes. No new server-side calendar file cache is created. Unknown profiles, authorization failures, rate limits and connection problems return corresponding HTTP errors.
 
-`npm run preview` dient zur Kontrolle des gebauten Frontends. Es führt den PHP-Endpunkt nicht aus und bietet den Entwicklungsproxy nicht an; für einen echten Profilabruf ist daher der Entwicklungsserver oder das konfigurierte PHP-Hosting erforderlich.
+`npm run preview` serves the built frontend. It does not execute PHP or provide the development proxy. Actual profile requests require the development server or correctly configured PHP hosting.
+
+## Provider information and privacy
+
+The footer links **Imprint** (`?view=legal`) and **Privacy** (`?view=privacy`) open dedicated pages from every view. The About view keeps its existing `?view=imprint` URL for compatibility. Navigation preserves shared sound links and live playback.
+
+The privacy policy describes hosting, GitHub requests, data categories, purposes and legal bases, storage, shared snapshots, local WAV rendering, contact and data-subject rights. Glossary preferences are no longer stored persistently; the old `glossaryOpenEntries` entry is removed at startup without reading its contents. The application does not integrate analytics or advertising services.
+
+For your own deployment, update the provider/contact details and privacy policy to match the actual hosting, logging, retention and third-party services in use. Keep API credentials outside the public web root. The included notices do not replace an individual legal assessment.
