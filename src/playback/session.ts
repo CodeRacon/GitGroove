@@ -4,6 +4,7 @@ import type { Score, ScoreEvent } from '@/music/score'
 export interface PlaybackAdapter {
   clear(): void
   load(score: Score): void
+  retune(score: Score): void
   start(): Promise<void>
   pause(): void
   stop(): void
@@ -14,6 +15,28 @@ export interface PlaybackAdapter {
 }
 
 export type PlaybackStatus = 'stopped' | 'playing' | 'paused'
+
+function hasSameSchedule(current: Score, next: Score): boolean {
+  return (
+    current.username === next.username &&
+    current.mappingVersion === next.mappingVersion &&
+    current.startWeek === next.startWeek &&
+    current.totalBeats === next.totalBeats &&
+    current.events.length === next.events.length &&
+    current.events.every((event, index) => {
+      const replacement = next.events[index]
+      return (
+        event.voice === replacement.voice &&
+        event.beat === replacement.beat &&
+        event.duration === replacement.duration &&
+        event.velocity === replacement.velocity &&
+        event.week === replacement.week &&
+        event.day === replacement.day &&
+        event.notes.length === replacement.notes.length
+      )
+    })
+  )
+}
 
 export class PlaybackSession {
   readonly status = ref<PlaybackStatus>('stopped')
@@ -33,6 +56,17 @@ export class PlaybackSession {
     this.score = score
     this.adapter.load(score)
     this.updatePosition(0)
+  }
+
+  /** Change pitches on the existing schedule without stopping or releasing sounding voices. */
+  retune(score: Score): void {
+    if (!this.score || !hasSameSchedule(this.score, score)) {
+      this.load(score)
+      return
+    }
+    this.score = score
+    this.adapter.retune(score)
+    this.updatePosition(this.adapter.positionBeats())
   }
 
   clear(): void {
