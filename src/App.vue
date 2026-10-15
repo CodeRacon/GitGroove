@@ -79,8 +79,11 @@ const github = useGitHubStore()
 
 <style scoped>
 .app {
+  display: flex;
+  flex-direction: column;
   max-width: 1180px;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
   padding: 0 32px;
 }
@@ -129,6 +132,8 @@ const github = useGitHubStore()
   color: var(--color-text);
 }
 .app-footer {
+  margin-top: auto;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;

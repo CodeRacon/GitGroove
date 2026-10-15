@@ -1,4 +1,52 @@
 describe('Legal information and storage', () => {
+  it('places a short page footer at the viewport bottom and directly above the mini player', () => {
+    cy.viewport(1440, 1400)
+    cy.visit('/?view=legal')
+    cy.get('.app-footer').should((footer) => {
+      const bottom = footer[0].getBoundingClientRect().bottom
+      expect(bottom).to.be.closeTo(footer[0].ownerDocument.defaultView!.innerHeight, 1)
+    })
+
+    cy.intercept('GET', '/api/contributions.php*', {
+      statusCode: 200,
+      body: {
+        totalContributions: 10,
+        weeks: [{ contributionDays: [{ date: '2026-01-05', contributionCount: 10 }] }],
+      },
+    })
+    cy.contains('a', 'Studio').click()
+    cy.contains('button', 'Try CodeRacon').click()
+    cy.get('[aria-label="Legal information"]').contains('a', 'Imprint').click()
+    cy.contains('h1', 'Imprint').should('be.visible')
+    cy.get('.mini-transport').should('be.visible')
+    const checkDockGap = () => {
+      cy.get('.app-footer').should((footer) => {
+        const dock = footer[0].ownerDocument.querySelector('.mini-transport')!
+        const gap = dock.getBoundingClientRect().top - footer[0].getBoundingClientRect().bottom
+        expect(gap, 'space between footer and mini player').to.be.within(8, 32)
+      })
+    }
+    checkDockGap()
+    cy.viewport(1280, 720)
+    cy.scrollTo('bottom', { ensureScrollable: false })
+    checkDockGap()
+    cy.screenshot('footer-short-page-desktop', { capture: 'viewport' })
+
+    cy.viewport(390, 844)
+    cy.scrollTo('bottom', { ensureScrollable: false })
+    checkDockGap()
+    cy.document().then((doc) => expect(doc.documentElement.scrollWidth).to.be.at.most(390))
+    cy.viewport(390, 720)
+    cy.scrollTo('bottom', { ensureScrollable: false })
+    checkDockGap()
+    cy.screenshot('footer-short-page-mobile', { capture: 'viewport' })
+    cy.get('[aria-label="Legal information"]').contains('a', 'Privacy').click()
+    cy.contains('h1', 'Privacy policy').should('be.visible')
+    cy.scrollTo('bottom')
+    checkDockGap()
+    cy.get('.legal-links').should('be.visible')
+  })
+
   it('makes provider and privacy information reachable on desktop and mobile', () => {
     cy.visit('/')
     cy.viewport(1280, 900)
