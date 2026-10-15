@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite'
 
-const query = 'query($username: String!) { user(login: $username) { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { contributionCount date } } } } } }'
+import { contributionQuery as query, contributionRequest } from './github-query'
 
 export function githubDevProxy(token: string | undefined): Plugin {
   const cache = new Map<string, { expires: number; body: string }>()
@@ -16,10 +16,14 @@ export function githubDevProxy(token: string | undefined): Plugin {
           response.end(JSON.stringify(body))
         }
         if (request.method !== 'GET') return send(405, { error: 'Method not allowed' })
-        const username = new URL(request.url ?? '', 'http://localhost').searchParams.get('username')?.trim() ?? ''
-        if (!/^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/i.test(username)) return send(400, { error: 'Invalid GitHub username' })
+        let period: ReturnType<typeof contributionRequest>
+        try {
+          period = contributionRequest(new URL(request.url ?? '', 'http://localhost').searchParams)
+        } catch (error) {
+          return send(400, { error: (error as Error).message })
+        }
         if (!token) return send(503, { error: 'GITHUB_TOKEN is not configured' })
-        const cached = cache.get(username.toLowerCase())
+        const cached = cache.get(period.cacheKey)
         if (cached && cached.expires > Date.now()) {
           response.end(cached.body)
           return
@@ -34,22 +38,38 @@ export function githubDevProxy(token: string | undefined): Plugin {
               Accept: 'application/vnd.github+json',
               'User-Agent': 'GitGroove',
             },
-            body: JSON.stringify({ query, variables: { username } }),
+            body: JSON.stringify({ query, variables: period.variables }),
           })
-          if (upstream.status === 401 || upstream.status === 403) return send(403, { error: 'GitHub authorization unavailable' })
+          if (upstream.status === 401 || upstream.status === 403)
+            return send(403, { error: 'GitHub authorization unavailable' })
           if (upstream.status === 429) return send(429, { error: 'GitHub rate limit' })
           if (!upstream.ok) return send(502, { error: 'GitHub request failed' })
-          const payload = await upstream.json() as { errors?: unknown[]; data?: { user?: { contributionsCollection?: { contributionCalendar?: unknown } } } }
+          const payload = (await upstream.json()) as {
+            errors?: unknown[]
+            data?: {
+              user?: {
+                contributionsCollection?: {
+                  contributionCalendar?: Record<string, unknown>
+                  contributionYears?: number[]
+                }
+              }
+            }
+          }
           if (payload.errors?.length) {
-            const types = payload.errors.map((error) => typeof error === 'object' && error !== null && 'type' in error ? error.type : null)
+            const types = payload.errors.map((error) =>
+              typeof error === 'object' && error !== null && 'type' in error ? error.type : null,
+            )
             if (types.includes('NOT_FOUND')) return send(404, { error: 'GitHub user not found' })
             if (types.includes('RATE_LIMITED')) return send(429, { error: 'GitHub rate limit' })
             return send(502, { error: 'GitHub GraphQL error' })
           }
           const calendar = payload.data?.user?.contributionsCollection?.contributionCalendar
           if (!calendar) return send(404, { error: 'GitHub user not found' })
-          const body = JSON.stringify(calendar)
-          cache.set(username.toLowerCase(), { expires: Date.now() + 300_000, body })
+          const body = JSON.stringify({
+            ...calendar,
+            contributionYears: payload.data?.user?.contributionsCollection?.contributionYears ?? [],
+          })
+          cache.set(period.cacheKey, { expires: Date.now() + 300_000, body })
           response.end(body)
         } catch {
           send(502, { error: 'GitHub connection unavailable' })

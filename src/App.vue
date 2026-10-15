@@ -1,8 +1,17 @@
+<script setup lang="ts">
+import { useGitHubStore } from '@/stores/github.store'
+const github = useGitHubStore()
+</script>
+
 <template>
-  <div class="app">
+  <div class="app" :class="{ 'has-transport': github.contributions?.weeks.length }">
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="app-header">
-      <RouterLink class="brand" to="/" aria-label="GitGroove studio">
+      <RouterLink
+        class="brand"
+        :to="{ path: '/', hash: $route.hash }"
+        aria-label="GitGroove studio"
+      >
         <svg
           class="brand-mark"
           aria-hidden="true"
@@ -24,19 +33,19 @@
       </RouterLink>
       <nav aria-label="Main navigation">
         <RouterLink
-          to="/"
+          :to="{ path: '/', hash: $route.hash }"
           :class="{ active: !$route.query.view }"
           :aria-current="!$route.query.view ? 'page' : undefined"
           >Studio</RouterLink
         >
         <RouterLink
-          to="/?view=glossary"
+          :to="{ path: '/', query: { view: 'glossary' }, hash: $route.hash }"
           :class="{ active: $route.query.view === 'glossary' }"
           :aria-current="$route.query.view === 'glossary' ? 'page' : undefined"
           >Glossary</RouterLink
         >
         <RouterLink
-          to="/?view=imprint"
+          :to="{ path: '/', query: { view: 'imprint' }, hash: $route.hash }"
           :class="{ active: $route.query.view === 'imprint' }"
           :aria-current="$route.query.view === 'imprint' ? 'page' : undefined"
           >About</RouterLink
@@ -62,6 +71,9 @@
   min-height: 100vh;
   margin: 0 auto;
   padding: 0 32px;
+}
+.app.has-transport {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
 }
 .app-header {
   display: flex;

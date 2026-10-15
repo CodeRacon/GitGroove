@@ -1,4 +1,5 @@
 import type { Voice } from '@/music/score'
+import type { MixSnapshot } from '@/studio/snapshot'
 
 export interface VoiceMix {
   level: number
@@ -47,9 +48,21 @@ export class SynthMix {
     return this.soloVoice
   }
 
+  snapshot(): MixSnapshot {
+    return {
+      muted: { bass: this.isMuted('bass'), pad: this.isMuted('pad'), lead: this.isMuted('lead') },
+      solo: this.soloVoice,
+    }
+  }
+
+  restore(state: MixSnapshot): void {
+    for (const voice of ['bass', 'pad', 'lead'] as const) this.setMute(voice, state.muted[voice])
+    this.soloVoice = state.solo
+  }
+
   effectiveLevel(voice: Voice): number {
-    const audible = this.gated &&
-      (this.soloVoice === null ? !this.voices[voice].muted : this.soloVoice === voice)
+    const audible =
+      this.gated && (this.soloVoice === null ? !this.voices[voice].muted : this.soloVoice === voice)
     return audible ? this.voices[voice].level : -Infinity
   }
 }

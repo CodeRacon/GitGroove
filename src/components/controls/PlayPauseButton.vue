@@ -1,5 +1,13 @@
 <script setup lang="ts">
-const props = defineProps<{ isPlaying: boolean; disabled?: boolean }>()
+const props = withDefaults(
+  defineProps<{
+    isPlaying: boolean
+    disabled?: boolean
+    showStop?: boolean
+    labelPrefix?: string
+  }>(),
+  { showStop: true, labelPrefix: '' },
+)
 const emit = defineEmits<{ play: []; pause: []; stop: [] }>()
 function togglePlay() {
   if (props.isPlaying) emit('pause')
@@ -13,7 +21,7 @@ function togglePlay() {
       class="play-pause-button primary-button"
       :class="{ playing: isPlaying }"
       :disabled="disabled"
-      :aria-label="isPlaying ? 'Pause sequence' : 'Play sequence'"
+      :aria-label="`${labelPrefix}${isPlaying ? 'Pause sequence' : 'Play sequence'}`"
       @click="togglePlay"
     >
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -23,6 +31,7 @@ function togglePlay() {
       {{ isPlaying ? 'Pause' : 'Play' }}
     </button>
     <button
+      v-if="showStop"
       class="stop-button secondary-button"
       :disabled="disabled"
       aria-label="Stop and return to section start"

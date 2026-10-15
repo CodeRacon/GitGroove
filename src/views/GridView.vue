@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRoute, onBeforeRouteLeave } from 'vue-router'
+import { ref, computed, watch, toRefs, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useGitHubStore } from '@/stores/github.store'
 import { createScore } from '@/music/score'
 import { useStudio } from '@/audio/studio'
+import KeyControl from '@/components/controls/KeyControl.vue'
+import StudioActions from '@/components/controls/StudioActions.vue'
+import Fader from '@/components/controls/common/Fader.vue'
+import { decodeSnapshot } from '@/studio/share'
+import YearSelector from '@/components/sequencer/YearSelector.vue'
 import BarSelector from '@/components/sequencer/BarSelector.vue'
 import BracketSelector from '@/components/sequencer/BracketSelector.vue'
 import PlayPauseButton from '@/components/controls/PlayPauseButton.vue'
+import MiniTransport from '@/components/controls/MiniTransport.vue'
+import { usePlaybackShortcut } from '@/composables/usePlaybackShortcut'
+import { useTransportVisibility } from '@/composables/useTransportVisibility'
 import Playhead from '@/components/sequencer/Playhead.vue'
 import BPMControl from '@/components/controls/BPMControl.vue'
 import BassSynthPanel from '@/components/controls/synth/BassSynthPanel.vue'
@@ -16,16 +24,41 @@ import Glossary from './Glossary.vue'
 import Imprint from './Imprint.vue'
 
 const route = useRoute()
+const router = useRouter()
 const githubStore = useGitHubStore()
-const { session } = useStudio()
+const studio = useStudio()
+const { session, state, resetSound } = studio
 const { status, bpm, week: currentWeek, day: currentDay, progress } = session
 const username = ref('')
 const playbackError = ref('')
 const audioStarting = ref(false)
-const selectedBars = ref(8)
-const startBar = ref(0)
+const transportControls = ref<HTMLElement | null>(null)
+const transportVisible = useTransportVisibility(transportControls)
+const { weekCount: selectedBars, startWeek: startBar } = toRefs(state.selection)
+const snapshotLoaded = ref(false)
+const snapshotError = ref('')
+const snapshotLoading = ref(false)
 const calendar = computed(() => githubStore.contributions)
+const periodTarget = ref<number | null>(null)
+let periodRevision = 0
 const hasWeeks = computed(() => !!calendar.value?.weeks.length)
+const playbackDisabled = computed(
+  () =>
+    !hasWeeks.value ||
+    audioStarting.value ||
+    githubStore.loading ||
+    githubStore.periodLoading ||
+    snapshotLoading.value,
+)
+usePlaybackShortcut(
+  () => !playbackDisabled.value,
+  () => {
+    void handlePlayback(status.value !== 'playing')
+  },
+)
+const captureSound = () =>
+  studio.snapshot(githubStore.username, calendar.value!, githubStore.sourceYear)
+const loopSeconds = computed(() => (selectedBars.value * 4 * 60) / bpm.value)
 const timelineWidth = computed(() => (calendar.value?.weeks.length ?? 0) * 16 - 4)
 const selectedDays = computed(
   () =>
@@ -53,7 +86,13 @@ const monthLabels = computed(
   () =>
     calendar.value?.weeks.map((week, index, weeks) => {
       const date = week.days.find((day) => !day.outsideRange)?.date ?? week.firstDay
-      const previous = index > 0 ? weeks[index - 1].firstDay.slice(0, 7) : ''
+      const previous =
+        index > 0
+          ? (
+              weeks[index - 1].days.find((day) => !day.outsideRange)?.date ??
+              weeks[index - 1].firstDay
+            ).slice(0, 7)
+          : ''
       return date.slice(0, 7) !== previous
         ? new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(new Date(date))
         : ''
@@ -66,29 +105,99 @@ function formatDate(date: string) {
 }
 
 watch(
-  () => route.query.view,
-  (view) => {
-    if (view) session.pause()
+  () => [
+    state.sound.patterns.bass,
+    state.sound.patterns.lead,
+    state.sound.key,
+    state.sound.octaves.bass,
+    state.sound.octaves.pad,
+    state.sound.octaves.lead,
+  ],
+  () => {
+    loadScore(true)
+  },
+)
+let snapshotRequest = 0
+watch(
+  () => route.hash,
+  async (hash) => {
+    const request = ++snapshotRequest
+    if (!hash.startsWith('#sound=')) {
+      snapshotLoading.value = false
+      return
+    }
+    periodRevision++
+    githubStore.cancelPeriod()
+    snapshotError.value = ''
+    snapshotLoading.value = true
+    session.pause()
+    try {
+      const saved = await decodeSnapshot(hash.slice(7))
+      if (request !== snapshotRequest) return
+      studio.restore(saved)
+      githubStore.restoreCalendar(saved.calendar, saved.profile, saved.sourceYear)
+      username.value = saved.profile
+      snapshotLoaded.value = true
+      loadScore()
+    } catch (error) {
+      if (request === snapshotRequest)
+        snapshotError.value =
+          error instanceof Error ? error.message : 'This shared sound could not be opened.'
+    } finally {
+      if (request === snapshotRequest) snapshotLoading.value = false
+    }
   },
   { immediate: true },
 )
-onBeforeRouteLeave(() => session.pause())
 
-function loadScore() {
+function loadScore(retune = false) {
   const data = calendar.value
   if (!data?.weeks.length) return
   selectedBars.value = Math.min(selectedBars.value, data.weeks.length)
   startBar.value = Math.max(0, Math.min(startBar.value, data.weeks.length - selectedBars.value))
-  session.load(createScore(data, githubStore.username, startBar.value, selectedBars.value))
+  const score = createScore(
+    data,
+    githubStore.username,
+    startBar.value,
+    selectedBars.value,
+    state.sound,
+  )
+  if (retune) session.retune(score)
+  else session.load(score)
 }
 
 async function loadContributions() {
   if (!username.value.trim() || githubStore.loading || audioStarting.value) return
+  snapshotRequest++
+  periodRevision++
+  if (route.hash.startsWith('#sound=')) void router.replace({ hash: '' })
+  snapshotLoading.value = false
+  snapshotLoaded.value = false
+  snapshotError.value = ''
   session.clear()
   playbackError.value = ''
   await githubStore.fetchContributions(username.value)
   startBar.value = 0
   loadScore()
+}
+
+async function loadPeriod(year: number | null) {
+  if (audioStarting.value || githubStore.loading || snapshotLoading.value) return
+  const revision = ++periodRevision
+  periodTarget.value = year
+  if (year === githubStore.sourceYear && !githubStore.frozen) {
+    githubStore.cancelPeriod()
+    return
+  }
+  session.stop()
+  playbackError.value = ''
+  const result = await githubStore.preparePeriod(year)
+  if (revision !== periodRevision || !result) return
+  githubStore.commitPeriod(result, year)
+  snapshotLoaded.value = false
+  if (route.hash.startsWith('#sound=')) void router.replace({ hash: '' })
+  if (result.calendar.weeks.length) loadScore()
+  else session.clear()
 }
 
 function loadExample() {
@@ -113,7 +222,7 @@ async function handlePlayback(playing: boolean) {
     session.pause()
     return
   }
-  if (audioStarting.value) return
+  if (playbackDisabled.value) return
   playbackError.value = ''
   audioStarting.value = true
   try {
@@ -124,11 +233,29 @@ async function handlePlayback(playing: boolean) {
     audioStarting.value = false
   }
 }
+async function showStudio() {
+  await router.push({ path: '/', hash: route.hash })
+  await nextTick()
+  // Let the router finish its view-change scroll before revealing the transport.
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  transportControls.value?.scrollIntoView({ block: 'center' })
+  transportControls.value
+    ?.querySelector<HTMLButtonElement>('button')
+    ?.focus({ preventScroll: true })
+}
 </script>
 
 <template>
   <main id="main-content" class="grid-view" :class="{ 'has-calendar': hasWeeks }" tabindex="-1">
     <template v-if="!route.query.view">
+      <p v-if="snapshotLoading" class="snapshot-notice" role="status">Opening shared sound…</p>
+      <p v-if="snapshotError" class="error snapshot-notice" role="alert">
+        {{ snapshotError }} You can load a profile below.
+      </p>
+      <p v-if="snapshotLoaded" class="snapshot-notice" role="status">
+        Shared sound restored · this calendar is a frozen snapshot. Press Play to listen, or load a
+        profile for current activity.
+      </p>
       <section v-if="!hasWeeks" class="intro" aria-labelledby="studio-title">
         <div>
           <p class="eyebrow">GitHub activity × music studio</p>
@@ -183,7 +310,7 @@ async function handlePlayback(playing: boolean) {
             Try CodeRacon <span aria-hidden="true">→</span>
           </button>
         </form>
-        <p id="profile-hint" class="hint">
+        <p id="profile-hint" class="hint" :class="{ 'sr-only': hasWeeks }">
           No GitHub account needed. Try the creator’s profile, or enter any public GitHub username.
         </p>
         <div id="profile-feedback" class="profile-feedback" aria-live="polite" aria-atomic="true">
@@ -322,28 +449,48 @@ async function handlePlayback(playing: boolean) {
           >
         </div>
 
+        <YearSelector
+          v-if="githubStore.years.length || githubStore.frozen"
+          :years="githubStore.years"
+          :selected="githubStore.sourceYear"
+          :frozen="githubStore.frozen"
+          :busy="githubStore.periodLoading"
+          :target="periodTarget"
+          :error="githubStore.periodError"
+          :disabled="audioStarting || githubStore.loading"
+          @select="loadPeriod"
+        />
+
         <div class="transport">
-          <PlayPauseButton
-            :is-playing="status === 'playing'"
-            :disabled="audioStarting"
-            @play="handlePlayback(true)"
-            @pause="handlePlayback(false)"
-            @stop="session.stop()"
-          />
-          <div class="playback-state" role="status">
-            <span class="state-dot" :class="{ playing: status === 'playing' }"></span
-            >{{
-              audioStarting
-                ? 'Starting audio…'
-                : status === 'playing'
-                  ? 'Playing'
-                  : status === 'paused'
-                    ? 'Paused'
-                    : 'Ready to play'
-            }}
+          <div ref="transportControls" class="primary-transport-controls">
+            <PlayPauseButton
+              :is-playing="status === 'playing'"
+              :disabled="playbackDisabled"
+              @play="handlePlayback(true)"
+              @pause="handlePlayback(false)"
+              @stop="session.stop()"
+            />
+          </div>
+          <div class="playback-state-stack">
+            <div class="playback-state" role="status">
+              <span class="state-dot" :class="{ playing: status === 'playing' }"></span
+              >{{
+                githubStore.periodLoading
+                  ? 'Loading calendar…'
+                  : audioStarting
+                    ? 'Starting audio…'
+                    : status === 'playing'
+                      ? 'Playing'
+                      : status === 'paused'
+                        ? 'Paused'
+                        : 'Ready to play'
+              }}
+            </div>
+            <p class="shortcut-hint"><kbd>Space</kbd> Play/Pause</p>
           </div>
           <BPMControl :bpm="bpm" @update:bpm="(value) => session.setBpm(value)" />
         </div>
+        <StudioActions :capture="captureSound" :loop-seconds="loopSeconds" />
         <p v-if="selectedContributions === 0" class="selection-feedback" role="status">
           This section has no contributions, so it plays silence. Move the selection to brighter
           squares or try another profile.
@@ -386,12 +533,30 @@ async function handlePlayback(playing: boolean) {
             <p class="eyebrow">02 / Make it yours</p>
             <h2 id="voices-heading">Shape the sound</h2>
           </div>
-          <p class="hint">Three voices. Your mix.</p>
+          <button class="secondary-button" type="button" @click="resetSound">Reset sound</button>
         </div>
         <p class="hint voice-hint">
           Adjust volume and drag a knob up or down to change its value. Use arrow keys when focused.
           Mute silences a voice; Solo lets you hear it on its own.
         </p>
+        <div class="sound-tools">
+          <KeyControl v-model="state.sound.key" />
+          <div class="focus-control">
+            <Fader
+              v-model="state.sound.leadFocus"
+              :min="0"
+              :max="100"
+              :step="1"
+              :decimals="0"
+              label="Lead focus"
+              unit="%"
+            />
+            <p class="hint">
+              Make room for lead note attacks by briefly lowering the pad. At 0%, your mix stays
+              unchanged. Muted and soloed voices are respected.
+            </p>
+          </div>
+        </div>
         <div class="synth-panels"><BassSynthPanel /><PadSynthPanel /><LeadSynthPanel /></div>
       </section>
     </template>
@@ -400,6 +565,20 @@ async function handlePlayback(playing: boolean) {
     <p v-else class="hint">
       This view is unavailable. <RouterLink to="/">Return to the studio</RouterLink>.
     </p>
+    <MiniTransport
+      v-if="hasWeeks"
+      :visible="!transportVisible"
+      :profile="githubStore.username"
+      :bars="selectedBars"
+      :status="status"
+      :disabled="playbackDisabled"
+      :starting="audioStarting"
+      :loading="githubStore.periodLoading"
+      :error="playbackError"
+      @play="handlePlayback(true)"
+      @pause="handlePlayback(false)"
+      @studio="showStudio"
+    />
   </main>
 </template>
 
@@ -426,7 +605,11 @@ h1 span {
   color: var(--color-accent);
 }
 .grid-view.has-calendar {
-  padding-top: 24px;
+  padding-top: 16px;
+}
+.has-calendar .profile-panel {
+  padding: 14px 24px;
+  margin-bottom: 20px;
 }
 .calendar-heading {
   font-size: 1.35rem;
@@ -496,6 +679,10 @@ h1 span {
 }
 .username-field:focus-within {
   border-color: var(--color-accent);
+}
+.username-field input:focus {
+  /* The containing field supplies the focus indicator without a second inner frame. */
+  outline: none;
 }
 input {
   min-width: 0;
@@ -570,7 +757,7 @@ h2 {
   align-items: end;
   justify-content: space-between;
   gap: 20px;
-  margin: 24px 0 8px;
+  margin: 16px 0 8px;
 }
 .selection-summary {
   display: flex;
@@ -684,6 +871,21 @@ h2 {
   gap: 20px;
   flex-wrap: wrap;
 }
+.primary-transport-controls {
+  display: flex;
+}
+.shortcut-hint {
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  margin-top: 3px;
+}
+.shortcut-hint kbd {
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-right: 3px;
+}
 .playback-state {
   display: flex;
   align-items: center;
@@ -718,6 +920,21 @@ h2 {
 .voice-hint {
   margin: 10px 0 20px;
   max-width: 800px;
+}
+.sound-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(220px, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.sound-tools :deep(.key-control) {
+  margin-bottom: 0;
+}
+.focus-control {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--color-surface);
 }
 .synth-panels {
   display: grid;
@@ -799,6 +1016,9 @@ h2 {
   }
 }
 @media (max-width: 600px) {
+  .sound-tools {
+    grid-template-columns: 1fr;
+  }
   .grid-view {
     padding: 28px 0;
   }

@@ -6,13 +6,17 @@ export default {
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { SYNTH_RANGES, type BassWaveform } from '@/audio/params'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import Fader from '../common/Fader.vue'
+import OctaveControl from '../OctaveControl.vue'
+import PatternControl from '../PatternControl.vue'
 import { useStudio } from '@/audio/studio'
 
-const { updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
+const { state, updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
 
 const bassParams = computed(() => params.bass)
+const ranges = SYNTH_RANGES.bass
 
 const updateVolume = (value: number) => updateSynthParam('bass', 'volume', value)
 const updateCutoff = (value: number) => updateSynthParam('bass', 'cutoff', value)
@@ -54,11 +58,34 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
     </div>
 
     <div class="controls-grid">
+      <div class="tone-options">
+        <label class="tone-field"
+          ><span class="field-label">Waveform</span
+          ><select
+            class="studio-select"
+            aria-label="Bass waveform"
+            :value="bassParams.waveform"
+            @change="
+              updateSynthParam(
+                'bass',
+                'waveform',
+                ($event.target as HTMLSelectElement).value as BassWaveform,
+              )
+            "
+          >
+            <option value="square8">Square</option>
+            <option value="sine">Sine</option>
+            <option value="triangle">Triangle</option>
+            <option value="sawtooth">Saw</option>
+          </select></label
+        ><OctaveControl voice="bass" v-model="state.sound.octaves.bass" />
+        <PatternControl voice="bass" v-model="state.sound.patterns.bass" />
+      </div>
       <div class="volume-section">
         <Fader
           v-model="bassParams.volume"
-          :min="-60"
-          :max="40"
+          :min="ranges.volume[0]"
+          :max="ranges.volume[1]"
           :step="0.5"
           label="Volume"
           unit="dB"
@@ -70,8 +97,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
         <span class="control-section-title">Filter</span>
         <RotaryKnob
           v-model="bassParams.cutoff"
-          :min="20"
-          :max="4000"
+          :min="ranges.cutoff[0]"
+          :max="ranges.cutoff[1]"
           :step="10"
           label="Cutoff"
           unit="Hz"
@@ -80,8 +107,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
 
         <RotaryKnob
           v-model="bassParams.resonance"
-          :min="0.1"
-          :max="5"
+          :min="ranges.resonance[0]"
+          :max="ranges.resonance[1]"
           :step="0.05"
           label="Resonance"
           @update:modelValue="updateResonance"
@@ -92,8 +119,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
         <span class="control-section-title">Envelope</span>
         <RotaryKnob
           v-model="bassParams.attack"
-          :min="0.1"
-          :max="1"
+          :min="ranges.attack[0]"
+          :max="ranges.attack[1]"
           :step="0.05"
           label="Attack"
           unit="s"
@@ -102,8 +129,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
 
         <RotaryKnob
           v-model="bassParams.decay"
-          :min="0.1"
-          :max="1"
+          :min="ranges.decay[0]"
+          :max="ranges.decay[1]"
           :step="0.05"
           label="Decay"
           unit="s"
@@ -112,8 +139,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
 
         <RotaryKnob
           v-model="bassParams.sustain"
-          :min="0.1"
-          :max="1"
+          :min="ranges.sustain[0]"
+          :max="ranges.sustain[1]"
           :step="0.05"
           label="Sustain"
           @update:modelValue="updateSustain"
@@ -121,8 +148,8 @@ const updateRelease = (value: number) => updateSynthParam('bass', 'release', val
 
         <RotaryKnob
           v-model="bassParams.release"
-          :min="0.01"
-          :max="5"
+          :min="ranges.release[0]"
+          :max="ranges.release[1]"
           :step="0.05"
           label="Release"
           unit="s"
