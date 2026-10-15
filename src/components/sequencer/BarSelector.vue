@@ -8,6 +8,9 @@ const barOptions = computed(() => {
     (bars) => bars <= props.totalWeeks,
   )
   if (!options.includes(props.totalWeeks)) options.push(props.totalWeeks)
+  if (props.bars >= 1 && props.bars <= props.totalWeeks && !options.includes(props.bars))
+    options.push(props.bars)
+  options.sort((a, b) => a - b)
   return options
 })
 </script>

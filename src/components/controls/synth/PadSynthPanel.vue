@@ -5,18 +5,26 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
+import { SYNTH_RANGES } from '@/audio/params'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
+import OctaveControl from '../OctaveControl.vue'
 import { useStudio } from '@/audio/studio'
 import type { PadSynthParams } from '@/audio/params'
 
-const { updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
+const { state, updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
 
 const padParams = computed(() => params.pad)
+const ranges = SYNTH_RANGES.pad
 
-const isModulation = ref(false)
+const isModulation = computed({
+  get: () => state.view.padEnvelope === 'modulation',
+  set: (value: boolean) => {
+    state.view.padEnvelope = value ? 'modulation' : 'amplitude'
+  },
+})
 
 /**
  * Computes the envelope parameters based on whether modulation is enabled or not.
@@ -91,11 +99,14 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
     </div>
 
     <div class="controls-grid">
+      <div class="tone-options">
+        <OctaveControl voice="pad" v-model="state.sound.octaves.pad" />
+      </div>
       <div class="volume-section">
         <Fader
           v-model="padParams.volume"
-          :min="-60"
-          :max="40"
+          :min="ranges.volume[0]"
+          :max="ranges.volume[1]"
           :step="0.5"
           label="Volume"
           unit="dB"
@@ -107,8 +118,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
         <span class="control-section-title">Tone & effects</span>
         <RotaryKnob
           v-model="padParams.cutoff"
-          :min="20"
-          :max="2000"
+          :min="ranges.cutoff[0]"
+          :max="ranges.cutoff[1]"
           :step="10"
           label="Cutoff"
           unit="Hz"
@@ -117,8 +128,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
 
         <RotaryKnob
           v-model="padParams.reverbMix"
-          :min="0"
-          :max="1"
+          :min="ranges.reverbMix[0]"
+          :max="ranges.reverbMix[1]"
           :step="0.05"
           label="Reverb"
           @update:modelValue="updateReverbMix"
@@ -129,8 +140,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
         <span class="control-section-title">Envelope</span>
         <RotaryKnob
           v-model="envelopeParams.attack"
-          :min="0.1"
-          :max="1"
+          :min="ranges.attack[0]"
+          :max="ranges.attack[1]"
           :step="0.05"
           :label="isModulation ? 'Mod Attack' : 'Attack'"
           unit="s"
@@ -139,8 +150,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
 
         <RotaryKnob
           v-model="envelopeParams.decay"
-          :min="0.1"
-          :max="3"
+          :min="ranges.decay[0]"
+          :max="ranges.decay[1]"
           :step="0.05"
           :label="isModulation ? 'Mod Decay' : 'Decay'"
           unit="s"
@@ -149,8 +160,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
 
         <RotaryKnob
           v-model="envelopeParams.sustain"
-          :min="0"
-          :max="1"
+          :min="ranges.sustain[0]"
+          :max="ranges.sustain[1]"
           :step="0.05"
           :label="isModulation ? 'Mod Sustain' : 'Sustain'"
           @update:modelValue="(value) => updateEnvelopeParam('sustain', value)"
@@ -158,8 +169,8 @@ const toggleChorus = (value: boolean) => updateSynthParam('pad', 'chorus', value
 
         <RotaryKnob
           v-model="envelopeParams.release"
-          :min="0.1"
-          :max="5"
+          :min="ranges.release[0]"
+          :max="ranges.release[1]"
           :step="0.05"
           :label="isModulation ? 'Mod Release' : 'Release'"
           unit="s"

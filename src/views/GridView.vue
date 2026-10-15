@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRoute, onBeforeRouteLeave } from 'vue-router'
+import { ref, computed, watch, toRefs } from 'vue'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useGitHubStore } from '@/stores/github.store'
 import { createScore } from '@/music/score'
 import { useStudio } from '@/audio/studio'
+import KeyControl from '@/components/controls/KeyControl.vue'
+import StudioActions from '@/components/controls/StudioActions.vue'
+import Fader from '@/components/controls/common/Fader.vue'
+import { decodeSnapshot } from '@/studio/share'
 import BarSelector from '@/components/sequencer/BarSelector.vue'
 import BracketSelector from '@/components/sequencer/BracketSelector.vue'
 import PlayPauseButton from '@/components/controls/PlayPauseButton.vue'
@@ -16,16 +20,22 @@ import Glossary from './Glossary.vue'
 import Imprint from './Imprint.vue'
 
 const route = useRoute()
+const router = useRouter()
 const githubStore = useGitHubStore()
-const { session } = useStudio()
+const studio = useStudio()
+const { session, state, resetSound } = studio
 const { status, bpm, week: currentWeek, day: currentDay, progress } = session
 const username = ref('')
 const playbackError = ref('')
 const audioStarting = ref(false)
-const selectedBars = ref(8)
-const startBar = ref(0)
+const { weekCount: selectedBars, startWeek: startBar } = toRefs(state.selection)
+const snapshotLoaded = ref(false)
+const snapshotError = ref('')
+const snapshotLoading = ref(false)
 const calendar = computed(() => githubStore.contributions)
 const hasWeeks = computed(() => !!calendar.value?.weeks.length)
+const captureSound = () => studio.snapshot(githubStore.username, calendar.value!)
+const loopSeconds = computed(() => (selectedBars.value * 4 * 60) / bpm.value)
 const timelineWidth = computed(() => (calendar.value?.weeks.length ?? 0) * 16 - 4)
 const selectedDays = computed(
   () =>
@@ -73,17 +83,69 @@ watch(
   { immediate: true },
 )
 onBeforeRouteLeave(() => session.pause())
+watch(
+  () => [
+    state.sound.key,
+    state.sound.octaves.bass,
+    state.sound.octaves.pad,
+    state.sound.octaves.lead,
+  ],
+  () => loadScore(true),
+)
+let snapshotRequest = 0
+watch(
+  () => route.hash,
+  async (hash) => {
+    const request = ++snapshotRequest
+    if (!hash.startsWith('#sound=')) {
+      snapshotLoading.value = false
+      return
+    }
+    snapshotError.value = ''
+    snapshotLoading.value = true
+    session.pause()
+    try {
+      const saved = await decodeSnapshot(hash.slice(7))
+      if (request !== snapshotRequest) return
+      studio.restore(saved)
+      githubStore.restoreCalendar(saved.calendar, saved.profile)
+      username.value = saved.profile
+      snapshotLoaded.value = true
+      loadScore()
+    } catch (error) {
+      if (request === snapshotRequest)
+        snapshotError.value =
+          error instanceof Error ? error.message : 'This shared sound could not be opened.'
+    } finally {
+      if (request === snapshotRequest) snapshotLoading.value = false
+    }
+  },
+  { immediate: true },
+)
 
-function loadScore() {
+function loadScore(retune = false) {
   const data = calendar.value
   if (!data?.weeks.length) return
   selectedBars.value = Math.min(selectedBars.value, data.weeks.length)
   startBar.value = Math.max(0, Math.min(startBar.value, data.weeks.length - selectedBars.value))
-  session.load(createScore(data, githubStore.username, startBar.value, selectedBars.value))
+  const score = createScore(
+    data,
+    githubStore.username,
+    startBar.value,
+    selectedBars.value,
+    state.sound,
+  )
+  if (retune) session.retune(score)
+  else session.load(score)
 }
 
 async function loadContributions() {
   if (!username.value.trim() || githubStore.loading || audioStarting.value) return
+  snapshotRequest++
+  if (route.hash.startsWith('#sound=')) void router.replace({ hash: '' })
+  snapshotLoading.value = false
+  snapshotLoaded.value = false
+  snapshotError.value = ''
   session.clear()
   playbackError.value = ''
   await githubStore.fetchContributions(username.value)
@@ -129,6 +191,14 @@ async function handlePlayback(playing: boolean) {
 <template>
   <main id="main-content" class="grid-view" :class="{ 'has-calendar': hasWeeks }" tabindex="-1">
     <template v-if="!route.query.view">
+      <p v-if="snapshotLoading" class="snapshot-notice" role="status">Opening shared sound…</p>
+      <p v-if="snapshotError" class="error snapshot-notice" role="alert">
+        {{ snapshotError }} You can load a profile below.
+      </p>
+      <p v-if="snapshotLoaded" class="snapshot-notice" role="status">
+        Shared sound restored · this calendar is a frozen snapshot. Press Play to listen, or load a
+        profile for current activity.
+      </p>
       <section v-if="!hasWeeks" class="intro" aria-labelledby="studio-title">
         <div>
           <p class="eyebrow">GitHub activity × music studio</p>
@@ -344,6 +414,7 @@ async function handlePlayback(playing: boolean) {
           </div>
           <BPMControl :bpm="bpm" @update:bpm="(value) => session.setBpm(value)" />
         </div>
+        <StudioActions :capture="captureSound" :loop-seconds="loopSeconds" />
         <p v-if="selectedContributions === 0" class="selection-feedback" role="status">
           This section has no contributions, so it plays silence. Move the selection to brighter
           squares or try another profile.
@@ -386,12 +457,30 @@ async function handlePlayback(playing: boolean) {
             <p class="eyebrow">02 / Make it yours</p>
             <h2 id="voices-heading">Shape the sound</h2>
           </div>
-          <p class="hint">Three voices. Your mix.</p>
+          <button class="secondary-button" type="button" @click="resetSound">Reset sound</button>
         </div>
         <p class="hint voice-hint">
           Adjust volume and drag a knob up or down to change its value. Use arrow keys when focused.
           Mute silences a voice; Solo lets you hear it on its own.
         </p>
+        <div class="sound-tools">
+          <KeyControl v-model="state.sound.key" />
+          <div class="focus-control">
+            <Fader
+              v-model="state.sound.leadFocus"
+              :min="0"
+              :max="100"
+              :step="1"
+              :decimals="0"
+              label="Lead focus"
+              unit="%"
+            />
+            <p class="hint">
+              Make room for lead note attacks by briefly lowering the pad. At 0%, your mix stays
+              unchanged. Muted and soloed voices are respected.
+            </p>
+          </div>
+        </div>
         <div class="synth-panels"><BassSynthPanel /><PadSynthPanel /><LeadSynthPanel /></div>
       </section>
     </template>
@@ -496,6 +585,10 @@ h1 span {
 }
 .username-field:focus-within {
   border-color: var(--color-accent);
+}
+.username-field input:focus {
+  /* The containing field supplies the focus indicator without a second inner frame. */
+  outline: none;
 }
 input {
   min-width: 0;
@@ -719,6 +812,21 @@ h2 {
   margin: 10px 0 20px;
   max-width: 800px;
 }
+.sound-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(220px, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.sound-tools :deep(.key-control) {
+  margin-bottom: 0;
+}
+.focus-control {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--color-surface);
+}
 .synth-panels {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -799,6 +907,9 @@ h2 {
   }
 }
 @media (max-width: 600px) {
+  .sound-tools {
+    grid-template-columns: 1fr;
+  }
   .grid-view {
     padding: 28px 0;
   }

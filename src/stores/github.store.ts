@@ -18,6 +18,13 @@ export const useGitHubStore = defineStore('github', {
   }),
 
   actions: {
+    restoreCalendar(calendar: ContributionResponse, username: string) {
+      latestRequest++
+      this.contributions = calendar
+      this.username = username
+      this.loading = false
+      this.error = null
+    },
     async fetchContributions(username: string) {
       const request = ++latestRequest
       this.loading = true
@@ -32,7 +39,10 @@ export const useGitHubStore = defineStore('github', {
         }
       } catch (error) {
         if (request === latestRequest) {
-          this.error = error instanceof GitHubServiceError ? error.message : 'The contribution calendar could not be loaded.'
+          this.error =
+            error instanceof GitHubServiceError
+              ? error.message
+              : 'The contribution calendar could not be loaded.'
         }
       } finally {
         if (request === latestRequest) this.loading = false

@@ -6,14 +6,17 @@ export default {
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { SYNTH_RANGES } from '@/audio/params'
 import RotaryKnob from '../common/RotaryKnob.vue'
 import ToggleSwitch from '../common/ToggleSwitch.vue'
 import Fader from '../common/Fader.vue'
+import OctaveControl from '../OctaveControl.vue'
 import { useStudio } from '@/audio/studio'
 
-const { updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
+const { state, updateSynthParam, params, mix, toggleSolo, toggleMute } = useStudio()
 
 const leadParams = computed(() => params.lead)
+const ranges = SYNTH_RANGES.lead
 
 const updateVolume = (value: number) => updateSynthParam('lead', 'volume', value)
 const updateCutoff = (value: number) => updateSynthParam('lead', 'cutoff', value)
@@ -59,11 +62,14 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
     </div>
 
     <div class="controls-grid">
+      <div class="tone-options">
+        <OctaveControl voice="lead" v-model="state.sound.octaves.lead" />
+      </div>
       <div class="volume-section">
         <Fader
           v-model="leadParams.volume"
-          :min="-60"
-          :max="40"
+          :min="ranges.volume[0]"
+          :max="ranges.volume[1]"
           :step="0.5"
           label="Volume"
           unit="dB"
@@ -74,8 +80,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
         <span class="control-section-title">Tone & effects</span>
         <RotaryKnob
           v-model="leadParams.cutoff"
-          :min="20"
-          :max="2000"
+          :min="ranges.cutoff[0]"
+          :max="ranges.cutoff[1]"
           :step="10"
           label="Cutoff"
           unit="Hz"
@@ -84,8 +90,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 
         <RotaryKnob
           v-model="leadParams.delayTime"
-          :min="0.1"
-          :max="1"
+          :min="ranges.delayTime[0]"
+          :max="ranges.delayTime[1]"
           :step="0.05"
           label="Delay Time"
           unit="s"
@@ -94,8 +100,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 
         <RotaryKnob
           v-model="leadParams.delayFeedback"
-          :min="0"
-          :max="1"
+          :min="ranges.delayFeedback[0]"
+          :max="ranges.delayFeedback[1]"
           :step="0.05"
           label="Feedback"
           @update:modelValue="updateDelayFeedback"
@@ -103,8 +109,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 
         <RotaryKnob
           v-model="leadParams.reverbMix"
-          :min="0"
-          :max="1"
+          :min="ranges.reverbMix[0]"
+          :max="ranges.reverbMix[1]"
           :step="0.05"
           label="Reverb"
           @update:modelValue="updateReverbMix"
@@ -115,8 +121,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
         <span class="control-section-title">Envelope</span>
         <RotaryKnob
           v-model="leadParams.attack"
-          :min="0.1"
-          :max="1"
+          :min="ranges.attack[0]"
+          :max="ranges.attack[1]"
           :step="0.05"
           label="Attack"
           unit="s"
@@ -125,8 +131,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 
         <RotaryKnob
           v-model="leadParams.decay"
-          :min="0.1"
-          :max="1"
+          :min="ranges.decay[0]"
+          :max="ranges.decay[1]"
           :step="0.05"
           label="Decay"
           unit="s"
@@ -135,8 +141,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 
         <RotaryKnob
           v-model="leadParams.sustain"
-          :min="0.1"
-          :max="1"
+          :min="ranges.sustain[0]"
+          :max="ranges.sustain[1]"
           :step="0.05"
           label="Sustain"
           @update:modelValue="updateSustain"
@@ -144,8 +150,8 @@ const toggleDistortion = (value: boolean) => updateSynthParam('lead', 'distortio
 
         <RotaryKnob
           v-model="leadParams.release"
-          :min="0.1"
-          :max="5"
+          :min="ranges.release[0]"
+          :max="ranges.release[1]"
           :step="0.05"
           label="Release"
           unit="s"
